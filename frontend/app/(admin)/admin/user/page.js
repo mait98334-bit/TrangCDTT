@@ -1,0 +1,304 @@
+'use client';
+import { useState, useEffect } from 'react';
+import { fetchApi } from '@/services/apiService';
+
+export default function AdminUserPage() {
+    const [users, setUsers] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [submitting, setSubmitting] = useState(false);
+
+    // Modal state
+    const [showModal, setShowModal] = useState(false);
+    const [modalType, setModalType] = useState('add'); // 'add' hoặc 'edit'
+    const [formData, setFormData] = useState({
+        id: '',
+        name: '',
+        email: '',
+        password: '',
+        role: 'customer'
+    });
+
+    const loadUsers = async () => {
+        setLoading(true);
+        const res = await fetchApi('/users');
+        if (res.success) {
+            setUsers(res.data);
+        }
+        setLoading(false);
+    };
+
+    useEffect(() => {
+        loadUsers();
+    }, []);
+
+    // Mở modal Thêm
+    const handleOpenAdd = () => {
+        setModalType('add');
+        setFormData({
+            id: '',
+            name: '',
+            email: '',
+            password: '',
+            role: 'customer'
+        });
+        setShowModal(true);
+    };
+
+    // Mở modal Sửa
+    const handleOpenEdit = (user) => {
+        setModalType('edit');
+        setFormData({
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            password: '', // Rỗng để giữ nguyên mật khẩu cũ trừ khi nhập mới
+            role: user.role || 'customer'
+        });
+        setShowModal(true);
+    };
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setFormData((prev) => ({
+            ...prev,
+            [name]: value
+        }));
+    };
+
+    // Xử lý Gửi form Thêm/Sửa
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (!formData.name || !formData.email) {
+            alert('Vui lòng nhập tên và email!');
+            return;
+        }
+
+        if (modalType === 'add' && !formData.password) {
+            alert('Vui lòng nhập mật khẩu cho tài khoản mới!');
+            return;
+        }
+
+        setSubmitting(true);
+        const endpoint = modalType === 'add' ? '/users' : `/users/${formData.id}`;
+        const method = modalType === 'add' ? 'POST' : 'PUT';
+
+        const bodyData = {
+            name: formData.name,
+            email: formData.email,
+            role: formData.role
+        };
+
+        if (formData.password) {
+            bodyData.password = formData.password;
+        }
+
+        const res = await fetchApi(endpoint, {
+            method,
+            body: JSON.stringify(bodyData)
+        });
+
+        setSubmitting(false);
+
+        if (res.success) {
+            alert(modalType === 'add' ? 'Tạo tài khoản mới thành công!' : 'Cập nhật tài khoản thành công!');
+            setShowModal(false);
+            loadUsers();
+        } else {
+            alert(res.message || 'Thao tác thất bại!');
+        }
+    };
+
+    // Xử lý Xóa tài khoản
+    const handleDeleteUser = async (id) => {
+        if (!confirm('Bạn có chắc chắn muốn xóa tài khoản này? Thao tác này không thể hoàn tác.')) return;
+
+        const res = await fetchApi(`/users/${id}`, {
+            method: 'DELETE'
+        });
+
+        if (res.success) {
+            alert('Xóa tài khoản thành công!');
+            loadUsers();
+        } else {
+            alert(res.message || 'Xóa tài khoản thất bại!');
+        }
+    };
+
+    // Style cho badge vai trò
+    const getRoleBadgeClass = (role) => {
+        if (role === 'admin') {
+            return 'bg-purple-50 text-purple-700 border-purple-100';
+        }
+        return 'bg-emerald-50 text-emerald-700 border-emerald-100';
+    };
+
+    if (loading) return <div className="p-8 text-center text-gray-500 font-medium">Đang tải danh sách tài khoản...</div>;
+
+    return (
+        <div className="p-8 max-w-7xl mx-auto">
+            {/* Header */}
+            <div className="flex justify-between items-center mb-8">
+                <div>
+                    <h1 className="text-3xl font-bold text-gray-800">Quản lý Tài khoản</h1>
+                    <p className="text-sm text-gray-500 mt-1">Quản lý phân quyền và người dùng trong hệ thống</p>
+                </div>
+                <button
+                    onClick={handleOpenAdd}
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-semibold shadow-md transition-all flex items-center gap-2 cursor-pointer"
+                >
+                    <span>+ Thêm tài khoản mới</span>
+                </button>
+            </div>
+
+            {/* Bảng danh sách tài khoản */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <table className="w-full text-left border-collapse">
+                    <thead>
+                        <tr className="bg-gray-50 text-gray-600 uppercase text-xs tracking-wider border-b border-gray-100 font-bold">
+                            <th className="p-4 font-bold text-slate-800">ID</th>
+                            <th className="p-4 font-bold text-slate-800">Họ và tên</th>
+                            <th className="p-4 font-bold text-slate-800">Email</th>
+                            <th className="p-4 font-bold text-slate-800">Vai trò</th>
+                            <th className="p-4 font-bold text-slate-800">Ngày tạo</th>
+                            <th className="p-4 font-bold text-slate-800 text-center">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 text-sm">
+                        {users.length === 0 ? (
+                            <tr>
+                                <td colSpan="6" className="p-6 text-center text-gray-500">Chưa có người dùng nào.</td>
+                            </tr>
+                        ) : (
+                            users.map((item) => (
+                                <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
+                                    <td className="p-4 text-gray-500 font-medium">#{item.id}</td>
+                                    <td className="p-4 font-bold text-gray-800">{item.name}</td>
+                                    <td className="p-4 text-gray-600">{item.email}</td>
+                                    <td className="p-4">
+                                        <span className={`px-2.5 py-1 rounded-md font-semibold text-xs border uppercase tracking-wider ${getRoleBadgeClass(item.role)}`}>
+                                            {item.role || 'customer'}
+                                        </span>
+                                    </td>
+                                    <td className="p-4 text-gray-500">
+                                        {new Date(item.created_at).toLocaleDateString('vi-VN')}
+                                    </td>
+                                    <td className="p-4 text-center whitespace-nowrap">
+                                        <div className="flex items-center justify-center gap-1.5">
+                                            <button
+                                                onClick={() => handleOpenEdit(item)}
+                                                className="bg-sky-50 hover:bg-sky-100 text-sky-600 px-2.5 py-1.5 rounded-lg font-bold text-xs transition-colors cursor-pointer"
+                                            >
+                                                Sửa
+                                            </button>
+                                            <button
+                                                onClick={() => handleDeleteUser(item.id)}
+                                                className="bg-rose-50 hover:bg-rose-100 text-rose-600 px-2.5 py-1.5 rounded-lg font-bold text-xs transition-colors cursor-pointer"
+                                            >
+                                                Xóa
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))
+                        )}
+                    </tbody>
+                </table>
+            </div>
+
+            {/* Modal dialog Thêm/Sửa */}
+            {showModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 overflow-y-auto">
+                    <div className="bg-white w-full max-w-lg rounded-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                        {/* Header */}
+                        <div className="px-6 py-4 bg-gray-50 border-b border-gray-100 flex justify-between items-center">
+                            <h3 className="text-xl font-bold text-gray-800">
+                                {modalType === 'add' ? 'Thêm tài khoản mới' : 'Cập nhật tài khoản'}
+                            </h3>
+                            <button
+                                onClick={() => setShowModal(false)}
+                                className="text-gray-400 hover:text-gray-600 font-semibold text-lg cursor-pointer"
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        {/* Form */}
+                        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Họ và tên *</label>
+                                <input
+                                    type="text"
+                                    name="name"
+                                    value={formData.name}
+                                    onChange={handleInputChange}
+                                    required
+                                    placeholder="Ví dụ: Nguyễn Văn A"
+                                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Email liên hệ *</label>
+                                <input
+                                    type="email"
+                                    name="email"
+                                    value={formData.email}
+                                    onChange={handleInputChange}
+                                    required
+                                    placeholder="email@example.com"
+                                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                                    {modalType === 'add' ? 'Mật khẩu đăng nhập *' : 'Mật khẩu mới (để trống nếu giữ nguyên)'}
+                                </label>
+                                <input
+                                    type="password"
+                                    name="password"
+                                    value={formData.password}
+                                    onChange={handleInputChange}
+                                    required={modalType === 'add'}
+                                    placeholder="Nhập mật khẩu..."
+                                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Vai trò hệ thống</label>
+                                <select
+                                    name="role"
+                                    value={formData.role}
+                                    onChange={handleInputChange}
+                                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm bg-white"
+                                >
+                                    <option value="customer">Khách hàng (customer)</option>
+                                    <option value="admin">Quản trị viên (admin)</option>
+                                </select>
+                            </div>
+
+                            {/* Buttons */}
+                            <div className="pt-4 border-t border-gray-100 flex justify-end gap-3 text-sm">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowModal(false)}
+                                    className="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-colors cursor-pointer"
+                                >
+                                    Hủy
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={submitting}
+                                    className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl shadow-md transition-all cursor-pointer disabled:bg-indigo-400"
+                                >
+                                    {submitting ? 'Đang lưu...' : 'Lưu lại'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
