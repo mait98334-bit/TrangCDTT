@@ -3,7 +3,8 @@ const Product = require('../models/productModel');
 // 1. Lấy danh sách sản phẩm
 exports.getProducts = async (req, res) => {
     try {
-        const products = await Product.getAll();
+        const includeDeleted = req.query.admin === 'true';
+        const products = await Product.getAll(includeDeleted);
         res.status(200).json({
             success: true,
             count: products.length,
@@ -22,7 +23,8 @@ exports.getProducts = async (req, res) => {
 exports.getProductById = async (req, res) => {
     try {
         const { id } = req.params;
-        const product = await Product.getById(id);
+        const includeDeleted = req.query.admin === 'true';
+        const product = await Product.getById(id, includeDeleted);
 
         if (!product) {
             return res.status(404).json({
@@ -108,7 +110,7 @@ exports.updateProduct = async (req, res) => {
             });
         }
 
-        const product = await Product.getById(id);
+        const product = await Product.getById(id, true); // Lấy kể cả sản phẩm đã soft delete để cập nhật
         if (!product) {
             return res.status(404).json({
                 success: false,
@@ -155,12 +157,12 @@ exports.updateProduct = async (req, res) => {
     }
 };
 
-// 5. Xóa sản phẩm
+// 5. Xóa mềm sản phẩm
 exports.deleteProduct = async (req, res) => {
     try {
         const { id } = req.params;
 
-        const product = await Product.getById(id);
+        const product = await Product.getById(id, true);
         if (!product) {
             return res.status(404).json({
                 success: false,
@@ -172,12 +174,68 @@ exports.deleteProduct = async (req, res) => {
 
         res.status(200).json({
             success: true,
-            message: 'Xóa sản phẩm thành công'
+            message: 'Xóa sản phẩm thành công (đã đưa vào Thùng rác)'
         });
     } catch (error) {
         res.status(500).json({
             success: false,
             message: 'Lỗi khi xóa sản phẩm',
+            error: error.message
+        });
+    }
+};
+
+// 6. Khôi phục sản phẩm đã xóa mềm
+exports.restoreProduct = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const product = await Product.getById(id, true);
+        if (!product) {
+            return res.status(404).json({
+                success: false,
+                message: `Không tìm thấy sản phẩm có ID: ${id}`
+            });
+        }
+
+        await Product.restore(id);
+
+        res.status(200).json({
+            success: true,
+            message: 'Khôi phục sản phẩm thành công'
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Lỗi khi khôi phục sản phẩm',
+            error: error.message
+        });
+    }
+};
+
+// 7. Xóa vĩnh viễn sản phẩm
+exports.hardDeleteProduct = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const product = await Product.getById(id, true);
+        if (!product) {
+            return res.status(404).json({
+                success: false,
+                message: `Không tìm thấy sản phẩm có ID: ${id}`
+            });
+        }
+
+        await Product.hardDelete(id);
+
+        res.status(200).json({
+            success: true,
+            message: 'Đã xóa vĩnh viễn sản phẩm khỏi hệ thống'
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Lỗi khi xóa vĩnh viễn sản phẩm',
             error: error.message
         });
     }

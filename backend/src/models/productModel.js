@@ -1,13 +1,16 @@
 const db = require('../config/db');
 
 const Product = {
-    getAll: async () => {
+    // Lấy danh sách sản phẩm (có tùy chọn lấy cả sản phẩm đã xóa cho admin)
+    getAll: async (includeDeleted = false) => {
+        const whereClause = includeDeleted ? '' : 'WHERE p.is_deleted = 0 OR p.is_deleted IS NULL';
         const [rows] = await db.query(
             `SELECT p.*, c.name as category_name, b.name as brand_name,
                     COALESCE((SELECT SUM(od.quantity) FROM order_details od WHERE od.product_id = p.id), 0) as total_sold
              FROM products p 
              LEFT JOIN categories c ON p.category_id = c.id 
              LEFT JOIN brands b ON p.brand_id = b.id
+             ${whereClause}
              ORDER BY p.id ASC`
         );
         return rows.map(prod => {
@@ -22,15 +25,18 @@ const Product = {
         });
     },
 
-    // Lấy chi tiết 1 sản phẩm theo ID
-    getById: async (id) => {
+    // Lấy chi tiết 1 sản phẩm theo ID (có tùy chọn lấy cả sản phẩm đã xóa cho admin)
+    getById: async (id, includeDeleted = false) => {
+        const whereClause = includeDeleted 
+            ? 'WHERE p.id = ?' 
+            : 'WHERE p.id = ? AND (p.is_deleted = 0 OR p.is_deleted IS NULL)';
         const [rows] = await db.query(
             `SELECT p.*, c.name as category_name, b.name as brand_name,
                     COALESCE((SELECT SUM(od.quantity) FROM order_details od WHERE od.product_id = p.id), 0) as total_sold
              FROM products p 
              LEFT JOIN categories c ON p.category_id = c.id 
              LEFT JOIN brands b ON p.brand_id = b.id
-             WHERE p.id = ?`,
+             ${whereClause}`,
             [id]
         );
         if (rows.length === 0) return null;
@@ -49,7 +55,7 @@ const Product = {
     create: async (data) => {
         const { name, price, price_sale, image, description, category_id, brand_id, is_sale, is_hot, is_new } = data;
         const [result] = await db.query(
-            'INSERT INTO products (name, price, price_sale, image, description, category_id, brand_id, is_sale, is_hot, is_new) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            'INSERT INTO products (name, price, price_sale, image, description, category_id, brand_id, is_sale, is_hot, is_new, is_deleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)',
             [name, price, price_sale || null, image, description, category_id || null, brand_id || null, is_sale || 0, is_hot || 0, is_new || 0]
         );
         return result;
@@ -65,8 +71,26 @@ const Product = {
         return result;
     },
 
-    // Xóa sản phẩm theo ID (xóa các bảng liên quan để tránh lỗi khóa ngoại)
+    // Xóa mềm sản phẩm (chuyển is_deleted = 1)
     delete: async (id) => {
+        const [result] = await db.query(
+            'UPDATE products SET is_deleted = 1 WHERE id = ?',
+            [id]
+        );
+        return result;
+    },
+
+    // Khôi phục sản phẩm đã xóa mềm (is_deleted = 0)
+    restore: async (id) => {
+        const [result] = await db.query(
+            'UPDATE products SET is_deleted = 0 WHERE id = ?',
+            [id]
+        );
+        return result;
+    },
+
+    // Xóa vĩnh viễn sản phẩm khỏi database
+    hardDelete: async (id) => {
         const connection = await db.getConnection();
         try {
             await connection.beginTransaction();

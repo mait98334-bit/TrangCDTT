@@ -7,6 +7,7 @@ export default function AdminProductPage() {
     const [categories, setCategories] = useState([]);
     const [brands, setBrands] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState('active'); // 'active' hoặc 'trash'
     const [submitting, setSubmitting] = useState(false);
     const [uploadingFile, setUploadingFile] = useState(false);
 
@@ -46,7 +47,7 @@ export default function AdminProductPage() {
     // Load danh sách sản phẩm từ backend
     const loadProducts = async () => {
         setLoading(true);
-        const res = await fetchApi('/products');
+        const res = await fetchApi('/products?admin=true');
         if (res.success) {
             setProducts(res.data);
         }
@@ -186,19 +187,49 @@ export default function AdminProductPage() {
         }
     };
 
-    // Xử lý xóa sản phẩm
+    // Xử lý xóa mềm sản phẩm
     const handleDelete = async (id) => {
-        if (!confirm('Bạn có chắc chắn muốn xóa sản phẩm này không? Tất cả dữ liệu liên quan (biến thể, hình ảnh, giỏ hàng, đánh giá, đơn hàng) cũng sẽ bị xóa.')) return;
+        if (!confirm('Bạn có chắc chắn muốn đưa sản phẩm này vào thùng rác?')) return;
 
         const res = await fetchApi(`/products/${id}`, {
             method: 'DELETE'
         });
 
         if (res.success) {
-            alert('Xóa sản phẩm thành công!');
+            alert('Đã chuyển sản phẩm vào Thùng rác!');
             loadProducts();
         } else {
             alert(res.message || 'Xóa thất bại!');
+        }
+    };
+
+    // Xử lý khôi phục sản phẩm đã xóa mềm
+    const handleRestore = async (id) => {
+        const res = await fetchApi(`/products/${id}/restore`, {
+            method: 'POST'
+        });
+
+        if (res.success) {
+            alert('Khôi phục sản phẩm thành công!');
+            loadProducts();
+        } else {
+            alert(res.message || 'Khôi phục thất bại!');
+        }
+    };
+
+    // Xử lý xóa vĩnh viễn sản phẩm
+    const handleHardDelete = async (id) => {
+        if (!confirm('CẢNH BÁO: Bạn có chắc chắn muốn xóa vĩnh viễn sản phẩm này khỏi hệ thống? Thao tác này sẽ xóa sạch tất cả dữ liệu biến thể, đánh giá, chi tiết đơn hàng... liên quan và KHÔNG thể hoàn tác!')) return;
+
+        const res = await fetchApi(`/products/${id}/hard`, {
+            method: 'DELETE'
+        });
+
+        if (res.success) {
+            alert('Đã xóa vĩnh viễn sản phẩm!');
+            loadProducts();
+        } else {
+            alert(res.message || 'Xóa vĩnh viễn thất bại!');
         }
     };
 
@@ -363,6 +394,8 @@ export default function AdminProductPage() {
 
     if (loading) return <div className="p-8 text-center text-gray-500 font-medium">Đang tải danh sách sản phẩm...</div>;
 
+    const filteredProducts = products.filter(p => activeTab === 'active' ? !p.is_deleted : p.is_deleted);
+
     return (
         <div className="p-8 max-w-7xl mx-auto">
             {/* Header trang sản phẩm */}
@@ -376,6 +409,30 @@ export default function AdminProductPage() {
                     className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-semibold shadow-md transition-all flex items-center gap-2 cursor-pointer"
                 >
                     <span>+ Thêm sản phẩm mới</span>
+                </button>
+            </div>
+
+            {/* Tab điều hướng: Hoạt động / Thùng rác */}
+            <div className="flex gap-4 border-b border-gray-200 mb-6 text-sm">
+                <button
+                    onClick={() => setActiveTab('active')}
+                    className={`pb-3 font-semibold px-2 cursor-pointer transition-all border-b-2 ${
+                        activeTab === 'active'
+                            ? 'border-indigo-600 text-indigo-600'
+                            : 'border-transparent text-gray-500 hover:text-gray-700'
+                    }`}
+                >
+                    📦 Đang bán ({products.filter(p => !p.is_deleted).length})
+                </button>
+                <button
+                    onClick={() => setActiveTab('trash')}
+                    className={`pb-3 font-semibold px-2 cursor-pointer transition-all border-b-2 ${
+                        activeTab === 'trash'
+                            ? 'border-rose-600 text-rose-600'
+                            : 'border-transparent text-gray-500 hover:text-gray-700'
+                    }`}
+                >
+                    🗑️ Thùng rác ({products.filter(p => p.is_deleted).length})
                 </button>
             </div>
 
@@ -394,12 +451,14 @@ export default function AdminProductPage() {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100 text-sm">
-                        {products.length === 0 ? (
+                        {filteredProducts.length === 0 ? (
                             <tr>
-                                <td colSpan="7" className="p-6 text-center text-gray-500">Chưa có sản phẩm nào trong cơ sở dữ liệu.</td>
+                                <td colSpan="7" className="p-6 text-center text-gray-500">
+                                    {activeTab === 'trash' ? 'Thùng rác trống.' : 'Chưa có sản phẩm nào trong cơ sở dữ liệu.'}
+                                </td>
                             </tr>
                         ) : (
-                            products.map((item) => (
+                            filteredProducts.map((item) => (
                                 <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
                                     <td className="p-4 text-gray-500 font-medium">#{item.id}</td>
                                     <td className="p-4">
@@ -456,24 +515,43 @@ export default function AdminProductPage() {
                                     </td>
                                     <td className="p-4 text-center whitespace-nowrap">
                                         <div className="flex items-center justify-center gap-1.5">
-                                            <button
-                                                onClick={() => handleOpenExtra(item)}
-                                                className="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 px-2.5 py-1.5 rounded-lg font-bold text-xs transition-colors cursor-pointer"
-                                            >
-                                                Chi tiết
-                                            </button>
-                                            <button
-                                                onClick={() => handleOpenEdit(item)}
-                                                className="bg-sky-50 hover:bg-sky-100 text-sky-600 px-2.5 py-1.5 rounded-lg font-bold text-xs transition-colors cursor-pointer"
-                                            >
-                                                Sửa
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(item.id)}
-                                                className="bg-rose-50 hover:bg-rose-100 text-rose-600 px-2.5 py-1.5 rounded-lg font-bold text-xs transition-colors cursor-pointer"
-                                            >
-                                                Xóa
-                                            </button>
+                                            {activeTab === 'trash' ? (
+                                                <>
+                                                    <button
+                                                        onClick={() => handleRestore(item.id)}
+                                                        className="bg-green-50 hover:bg-green-100 text-green-600 px-2.5 py-1.5 rounded-lg font-bold text-xs transition-colors cursor-pointer"
+                                                    >
+                                                        🔄 Khôi phục
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleHardDelete(item.id)}
+                                                        className="bg-rose-50 hover:bg-rose-100 text-rose-600 px-2.5 py-1.5 rounded-lg font-bold text-xs transition-colors cursor-pointer"
+                                                    >
+                                                        💥 Xóa vĩnh viễn
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <button
+                                                        onClick={() => handleOpenExtra(item)}
+                                                        className="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 px-2.5 py-1.5 rounded-lg font-bold text-xs transition-colors cursor-pointer"
+                                                    >
+                                                        Chi tiết
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleOpenEdit(item)}
+                                                        className="bg-sky-50 hover:bg-sky-100 text-sky-600 px-2.5 py-1.5 rounded-lg font-bold text-xs transition-colors cursor-pointer"
+                                                    >
+                                                        Sửa
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDelete(item.id)}
+                                                        className="bg-rose-50 hover:bg-rose-100 text-rose-600 px-2.5 py-1.5 rounded-lg font-bold text-xs transition-colors cursor-pointer"
+                                                    >
+                                                        Xóa
+                                                    </button>
+                                                </>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>
