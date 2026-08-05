@@ -9,7 +9,10 @@ export default function AdminDashboardPage() {
         ordersCount: 0,
         usersCount: 0,
         contactsCount: 0,
+        revenue: 0,
     });
+    const [orderStatusBreakdown, setOrderStatusBreakdown] = useState({});
+    const [salesData, setSalesData] = useState([]);
     const [recentOrders, setRecentOrders] = useState([]);
     const [recentContacts, setRecentContacts] = useState([]);
     const [recentUsers, setRecentUsers] = useState([]);
@@ -29,12 +32,44 @@ export default function AdminDashboardPage() {
             const contacts = contactsRes.success ? contactsRes.data : [];
             const users = usersRes.success ? usersRes.data : [];
 
+            // Tính tổng doanh thu từ các đơn hàng (không tính đơn đã hủy)
+            const totalRevenue = orders
+                .filter(order => order.status?.toLowerCase() !== 'cancelled')
+                .reduce((sum, order) => sum + Number(order.total_price), 0);
+
+            // Thống kê số lượng đơn theo trạng thái
+            const breakdown = orders.reduce((acc, order) => {
+                const status = order.status || 'Pending';
+                acc[status] = (acc[status] || 0) + 1;
+                return acc;
+            }, {});
+
+            // Tính toán doanh thu 7 ngày gần nhất
+            const last7Days = Array.from({ length: 7 }, (_, i) => {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                return d;
+            }).reverse();
+
+            const salesByDay = last7Days.map(date => {
+                const dayLabel = date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' });
+                const dayOrders = orders.filter(order => {
+                    const orderDate = new Date(order.created_at).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' });
+                    return orderDate === dayLabel && order.status?.toLowerCase() !== 'cancelled';
+                });
+                const total = dayOrders.reduce((sum, order) => sum + Number(order.total_price), 0);
+                return { day: dayLabel, total };
+            });
+
             setStats({
                 productsCount: products.length,
                 ordersCount: orders.length,
                 usersCount: users.length,
                 contactsCount: contacts.length,
+                revenue: totalRevenue,
             });
+            setOrderStatusBreakdown(breakdown);
+            setSalesData(salesByDay);
 
             // Sort and slice for recent items
             const sortedOrders = [...orders]
@@ -107,37 +142,45 @@ export default function AdminDashboardPage() {
             </div>
 
             {/* Stats grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex items-center justify-between hover:shadow-md transition-shadow">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 flex items-center justify-between hover:shadow-md transition-shadow">
                     <div className="space-y-1">
-                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Tổng sản phẩm</span>
-                        <h3 className="text-3xl font-black text-slate-800">{stats.productsCount}</h3>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Doanh thu</span>
+                        <h3 className="text-base font-black text-indigo-600 leading-tight">{formatPrice(stats.revenue)}</h3>
                     </div>
-                    <div className="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center font-bold text-2xl shadow-inner">📦</div>
+                    <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center font-bold text-xl shadow-inner">💰</div>
                 </div>
 
-                <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex items-center justify-between hover:shadow-md transition-shadow">
+                <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 flex items-center justify-between hover:shadow-md transition-shadow">
                     <div className="space-y-1">
-                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Tổng đơn hàng</span>
-                        <h3 className="text-3xl font-black text-slate-800">{stats.ordersCount}</h3>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Sản phẩm</span>
+                        <h3 className="text-2xl font-black text-slate-800">{stats.productsCount}</h3>
                     </div>
-                    <div className="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center font-bold text-2xl shadow-inner">🛍️</div>
+                    <div className="w-12 h-12 bg-slate-50 text-slate-600 rounded-2xl flex items-center justify-center font-bold text-xl shadow-inner">📦</div>
                 </div>
 
-                <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex items-center justify-between hover:shadow-md transition-shadow">
+                <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 flex items-center justify-between hover:shadow-md transition-shadow">
                     <div className="space-y-1">
-                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Khách liên hệ</span>
-                        <h3 className="text-3xl font-black text-slate-800">{stats.contactsCount}</h3>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Đơn hàng</span>
+                        <h3 className="text-2xl font-black text-slate-800">{stats.ordersCount}</h3>
                     </div>
-                    <div className="w-14 h-14 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center font-bold text-2xl shadow-inner">💬</div>
+                    <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center font-bold text-xl shadow-inner">🛍️</div>
                 </div>
 
-                <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex items-center justify-between hover:shadow-md transition-shadow">
+                <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 flex items-center justify-between hover:shadow-md transition-shadow">
                     <div className="space-y-1">
-                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Tài khoản</span>
-                        <h3 className="text-3xl font-black text-slate-800">{stats.usersCount}</h3>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Liên hệ</span>
+                        <h3 className="text-2xl font-black text-slate-800">{stats.contactsCount}</h3>
                     </div>
-                    <div className="w-14 h-14 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center font-bold text-2xl shadow-inner">👤</div>
+                    <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center font-bold text-xl shadow-inner">💬</div>
+                </div>
+
+                <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 flex items-center justify-between hover:shadow-md transition-shadow">
+                    <div className="space-y-1">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tài khoản</span>
+                        <h3 className="text-2xl font-black text-slate-800">{stats.usersCount}</h3>
+                    </div>
+                    <div className="w-12 h-12 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center font-bold text-xl shadow-inner">👤</div>
                 </div>
             </div>
 
@@ -145,6 +188,45 @@ export default function AdminDashboardPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Left Columns (2/3 width on large screens) */}
                 <div className="lg:col-span-2 space-y-8">
+                    {/* Revenue Trend Chart */}
+                    <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 space-y-4">
+                        <div className="flex justify-between items-center">
+                            <div>
+                                <h3 className="text-lg font-bold text-slate-800">Biểu đồ doanh thu</h3>
+                                <p className="text-xs text-slate-400 mt-0.5">Doanh thu cửa hàng trong 7 ngày gần đây</p>
+                            </div>
+                            <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full">
+                                7 Ngày Qua
+                            </span>
+                        </div>
+
+                        <div className="h-44 flex items-end gap-4 pt-6 border-b border-slate-100 pb-2">
+                            {salesData.map(({ day, total }) => {
+                                const maxTotal = Math.max(...salesData.map(s => s.total), 1);
+                                const heightPercentage = (total / maxTotal) * 100;
+                                return (
+                                    <div key={day} className="flex-1 flex flex-col items-center gap-2 group h-full justify-end relative">
+                                        {/* Tooltip on hover */}
+                                        <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-slate-900 text-white text-[10px] py-1 px-2 rounded absolute -top-8 font-bold pointer-events-none shadow-lg z-10 whitespace-nowrap">
+                                            {formatPrice(total)}
+                                        </div>
+                                        {/* Bar */}
+                                        <div
+                                            style={{ height: `${Math.max(heightPercentage, 4)}%` }}
+                                            className={`w-full rounded-t-lg transition-all duration-500 cursor-pointer ${
+                                                total > 0
+                                                    ? 'bg-indigo-600 hover:bg-indigo-700 shadow-md shadow-indigo-100'
+                                                    : 'bg-slate-100 hover:bg-slate-200'
+                                            }`}
+                                        ></div>
+                                        {/* Day label */}
+                                        <span className="text-[10px] font-bold text-slate-400 mt-1">{day}</span>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+
                     {/* Recent Orders table */}
                     <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
                         <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-white">
@@ -281,6 +363,54 @@ export default function AdminDashboardPage() {
                                         </span>
                                     </div>
                                 ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Order Status Analysis */}
+                    <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 space-y-4">
+                        <h3 className="text-lg font-bold text-slate-800">Phân tích đơn hàng</h3>
+                        {stats.ordersCount === 0 ? (
+                            <div className="text-center text-slate-400 text-xs py-4">Chưa có đơn hàng để phân tích.</div>
+                        ) : (
+                            <div className="space-y-4">
+                                {Object.entries(orderStatusBreakdown).map(([status, count]) => {
+                                    const percentage = stats.ordersCount > 0 ? (count / stats.ordersCount) * 100 : 0;
+                                    let progressColor = 'bg-indigo-500';
+                                    let textColor = 'text-indigo-600';
+                                    let bgColor = 'bg-indigo-50';
+
+                                    if (status.toLowerCase() === 'completed' || status.toLowerCase() === 'delivered') {
+                                        progressColor = 'bg-emerald-500';
+                                        textColor = 'text-emerald-600';
+                                        bgColor = 'bg-emerald-50';
+                                    } else if (status.toLowerCase() === 'pending') {
+                                        progressColor = 'bg-amber-500';
+                                        textColor = 'text-amber-600';
+                                        bgColor = 'bg-amber-50';
+                                    } else if (status.toLowerCase() === 'cancelled') {
+                                        progressColor = 'bg-rose-500';
+                                        textColor = 'text-rose-600';
+                                        bgColor = 'bg-rose-50';
+                                    }
+
+                                    return (
+                                        <div key={status} className="space-y-1.5">
+                                            <div className="flex justify-between items-center text-xs font-semibold">
+                                                <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase border border-current ${textColor} ${bgColor}`}>
+                                                    {status}
+                                                </span>
+                                                <span className="text-slate-800 font-bold">{count} đơn ({percentage.toFixed(0)}%)</span>
+                                            </div>
+                                            <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                                                <div
+                                                    className={`h-full rounded-full transition-all duration-500 ${progressColor}`}
+                                                    style={{ width: `${percentage}%` }}
+                                                ></div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         )}
                     </div>

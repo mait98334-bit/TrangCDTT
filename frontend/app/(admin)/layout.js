@@ -1,10 +1,11 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 
 export default function AdminLayout({ children }) {
     const router = useRouter();
+    const pathname = usePathname();
     const [authorized, setAuthorized] = useState(false);
     const [mounted, setMounted] = useState(false);
 
@@ -29,6 +30,26 @@ export default function AdminLayout({ children }) {
         }
     }, [router]);
 
+    const menuItems = [
+        { href: '/admin', label: 'Tổng quan (Dashboard)', icon: '📊' },
+        { href: '/admin/product', label: 'Sản phẩm (Products)', icon: '📦' },
+        { href: '/admin/category', label: 'Danh mục (Categories)', icon: '📑' },
+        { href: '/admin/brand', label: 'Thương hiệu (Brands)', icon: '🏷️' },
+        { href: '/admin/order', label: 'Đơn hàng (Orders)', icon: '🛍️' },
+        { href: '/admin/user', label: 'Tài khoản (Users)', icon: '👤' },
+        { href: '/admin/post', label: 'Bài viết (Posts)', icon: '📰' },
+        { href: '/admin/review', label: 'Đánh giá (Reviews)', icon: '⭐' },
+        { href: '/admin/cart', label: 'Giỏ hàng (Carts)', icon: '🛒' },
+        { href: '/admin/contact', label: 'Liên hệ (Contacts)', icon: '💬' },
+    ];
+
+    const isActive = (href) => {
+        if (href === '/admin') {
+            return pathname === '/admin';
+        }
+        return pathname.startsWith(href);
+    };
+
     if (!mounted || !authorized) {
         return <div className="min-h-screen flex items-center justify-center font-medium text-gray-500">Đang kiểm tra quyền truy cập...</div>;
     }
@@ -43,36 +64,22 @@ export default function AdminLayout({ children }) {
                 </div>
 
                 <nav className="flex-1 p-5 space-y-1.5 text-sm overflow-y-auto">
-                    <Link href="/admin" className="flex items-center gap-4 px-4 py-3 rounded-xl font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors">
-                        <span className="text-lg">📊</span> Tổng quan (Dashboard)
-                    </Link>
-                    <Link href="/admin/product" className="flex items-center gap-4 px-4 py-3 rounded-xl font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors">
-                        <span className="text-lg">📦</span> Sản phẩm (Products)
-                    </Link>
-                    <Link href="/admin/category" className="flex items-center gap-4 px-4 py-3 rounded-xl font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors">
-                        <span className="text-lg">📑</span> Danh mục (Categories)
-                    </Link>
-                    <Link href="/admin/brand" className="flex items-center gap-4 px-4 py-3 rounded-xl font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors">
-                        <span className="text-lg">🏷️</span> Thương hiệu (Brands)
-                    </Link>
-                    <Link href="/admin/order" className="flex items-center gap-4 px-4 py-3 rounded-xl font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors">
-                        <span className="text-lg">🛍️</span> Đơn hàng (Orders)
-                    </Link>
-                    <Link href="/admin/user" className="flex items-center gap-4 px-4 py-3 rounded-xl font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors">
-                        <span className="text-lg">👤</span> Tài khoản (Users)
-                    </Link>
-                    <Link href="/admin/post" className="flex items-center gap-4 px-4 py-3 rounded-xl font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors">
-                        <span className="text-lg">📰</span> Bài viết (Posts)
-                    </Link>
-                    <Link href="/admin/review" className="flex items-center gap-4 px-4 py-3 rounded-xl font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors">
-                        <span className="text-lg">⭐</span> Đánh giá (Reviews)
-                    </Link>
-                    <Link href="/admin/cart" className="flex items-center gap-4 px-4 py-3 rounded-xl font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors">
-                        <span className="text-lg">🛒</span> Giỏ hàng (Carts)
-                    </Link>
-                    <Link href="/admin/contact" className="flex items-center gap-4 px-4 py-3 rounded-xl font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors">
-                        <span className="text-lg">💬</span> Liên hệ (Contacts)
-                    </Link>
+                    {menuItems.map((item) => {
+                        const active = isActive(item.href);
+                        return (
+                            <Link
+                                key={item.href}
+                                href={item.href}
+                                className={`flex items-center gap-4 px-4 py-3 rounded-xl font-medium transition-all duration-200 transform ${
+                                    active
+                                        ? 'bg-indigo-600 text-white shadow-lg font-semibold scale-[1.02]'
+                                        : 'text-slate-300 hover:bg-slate-800 hover:text-white hover:translate-x-1'
+                                }`}
+                            >
+                                <span className="text-lg">{item.icon}</span> {item.label}
+                            </Link>
+                        );
+                    })}
                 </nav>
 
                 <div className="p-5 border-t border-slate-800">
