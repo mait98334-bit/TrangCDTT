@@ -4,7 +4,8 @@ const bcrypt = require('bcryptjs');
 // 1. Lấy danh sách tất cả người dùng
 exports.getUsers = async (req, res) => {
     try {
-        const users = await User.getAll();
+        const includeDeleted = req.query.admin === 'true';
+        const users = await User.getAll(includeDeleted);
         res.status(200).json({
             success: true,
             count: users.length,
@@ -23,7 +24,8 @@ exports.getUsers = async (req, res) => {
 exports.getUserById = async (req, res) => {
     try {
         const { id } = req.params;
-        const user = await User.getById(id);
+        const includeDeleted = req.query.admin === 'true';
+        const user = await User.getById(id, includeDeleted);
 
         if (!user) {
             return res.status(404).json({
@@ -102,7 +104,7 @@ exports.updateUser = async (req, res) => {
         const { id } = req.params;
         const { name, email, role, password } = req.body;
 
-        const user = await User.getById(id);
+        const user = await User.getById(id, true);
         if (!user) {
             return res.status(404).json({
                 success: false,
@@ -153,12 +155,12 @@ exports.updateUser = async (req, res) => {
     }
 };
 
-// 5. Xóa tài khoản
+// 5. Xóa mềm tài khoản
 exports.deleteUser = async (req, res) => {
     try {
         const { id } = req.params;
 
-        const user = await User.getById(id);
+        const user = await User.getById(id, true);
         if (!user) {
             return res.status(404).json({
                 success: false,
@@ -170,12 +172,68 @@ exports.deleteUser = async (req, res) => {
 
         res.status(200).json({
             success: true,
-            message: 'Xóa tài khoản thành công!'
+            message: 'Đã đưa tài khoản vào danh sách khóa/vô hiệu hóa!'
         });
     } catch (error) {
         res.status(500).json({
             success: false,
             message: 'Lỗi khi xóa tài khoản',
+            error: error.message
+        });
+    }
+};
+
+// 6. Khôi phục tài khoản
+exports.restoreUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const user = await User.getById(id, true);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: `Không tìm thấy tài khoản có ID: ${id}`
+            });
+        }
+
+        await User.restore(id);
+
+        res.status(200).json({
+            success: true,
+            message: 'Khôi phục tài khoản thành công!'
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Lỗi khi khôi phục tài khoản',
+            error: error.message
+        });
+    }
+};
+
+// 7. Xóa vĩnh viễn tài khoản
+exports.hardDeleteUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const user = await User.getById(id, true);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: `Không tìm thấy tài khoản có ID: ${id}`
+            });
+        }
+
+        await User.hardDelete(id);
+
+        res.status(200).json({
+            success: true,
+            message: 'Đã xóa vĩnh viễn tài khoản khỏi hệ thống!'
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Lỗi khi xóa vĩnh viễn tài khoản',
             error: error.message
         });
     }

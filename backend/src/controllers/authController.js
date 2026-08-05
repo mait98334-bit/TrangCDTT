@@ -63,7 +63,7 @@ exports.login = async (req, res) => {
 
         // Tìm user theo email
         const user = await User.getByEmail(email);
-        if (!user) {
+        if (!user || user.is_deleted === 1) {
             return res.status(401).json({
                 success: false,
                 message: 'Email hoặc mật khẩu không chính xác'

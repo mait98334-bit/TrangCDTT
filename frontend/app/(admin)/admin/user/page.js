@@ -6,6 +6,7 @@ export default function AdminUserPage() {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
+    const [activeTab, setActiveTab] = useState('active'); // 'active' hoặc 'trash'
 
     // Modal state
     const [showModal, setShowModal] = useState(false);
@@ -20,7 +21,7 @@ export default function AdminUserPage() {
 
     const loadUsers = async () => {
         setLoading(true);
-        const res = await fetchApi('/users');
+        const res = await fetchApi('/users?admin=true');
         if (res.success) {
             setUsers(res.data);
         }
@@ -108,19 +109,49 @@ export default function AdminUserPage() {
         }
     };
 
-    // Xử lý Xóa tài khoản
+    // Xử lý Xóa mềm tài khoản
     const handleDeleteUser = async (id) => {
-        if (!confirm('Bạn có chắc chắn muốn xóa tài khoản này? Thao tác này không thể hoàn tác.')) return;
+        if (!confirm('Bạn có chắc chắn muốn vô hiệu hóa tài khoản này? Tài khoản sẽ tạm thời bị khóa và chuyển vào Thùng rác.')) return;
 
         const res = await fetchApi(`/users/${id}`, {
             method: 'DELETE'
         });
 
         if (res.success) {
-            alert('Xóa tài khoản thành công!');
+            alert('Đã vô hiệu hóa tài khoản và chuyển vào Thùng rác!');
             loadUsers();
         } else {
-            alert(res.message || 'Xóa tài khoản thất bại!');
+            alert(res.message || 'Khóa tài khoản thất bại!');
+        }
+    };
+
+    // Xử lý khôi phục tài khoản
+    const handleRestoreUser = async (id) => {
+        const res = await fetchApi(`/users/${id}/restore`, {
+            method: 'POST'
+        });
+
+        if (res.success) {
+            alert('Khôi phục tài khoản thành công!');
+            loadUsers();
+        } else {
+            alert(res.message || 'Khôi phục tài khoản thất bại!');
+        }
+    };
+
+    // Xử lý xóa vĩnh viễn tài khoản
+    const handleHardDeleteUser = async (id) => {
+        if (!confirm('CẢNH BÁO CỰC KỲ QUAN TRỌNG: Bạn có chắc chắn muốn xóa vĩnh viễn tài khoản này? Mọi thông tin đơn hàng, đánh giá liên quan đến tài khoản này cũng có thể bị ảnh hưởng. Thao tác này KHÔNG THỂ HOÀN TÁC!')) return;
+
+        const res = await fetchApi(`/users/${id}/hard`, {
+            method: 'DELETE'
+        });
+
+        if (res.success) {
+            alert('Đã xóa vĩnh viễn tài khoản khỏi hệ thống!');
+            loadUsers();
+        } else {
+            alert(res.message || 'Xóa vĩnh viễn tài khoản thất bại!');
         }
     };
 
@@ -133,6 +164,8 @@ export default function AdminUserPage() {
     };
 
     if (loading) return <div className="p-8 text-center text-gray-500 font-medium">Đang tải danh sách tài khoản...</div>;
+
+    const filteredUsers = users.filter(u => activeTab === 'active' ? !u.is_deleted : u.is_deleted);
 
     return (
         <div className="p-8 max-w-7xl mx-auto">
@@ -150,6 +183,30 @@ export default function AdminUserPage() {
                 </button>
             </div>
 
+            {/* Tab điều hướng */}
+            <div className="flex gap-4 border-b border-gray-200 mb-6 text-sm">
+                <button
+                    onClick={() => setActiveTab('active')}
+                    className={`pb-3 font-semibold px-2 cursor-pointer transition-all border-b-2 ${
+                        activeTab === 'active'
+                            ? 'border-indigo-600 text-indigo-600'
+                            : 'border-transparent text-gray-500 hover:text-gray-700'
+                    }`}
+                >
+                    📦 Hoạt động ({users.filter(u => !u.is_deleted).length})
+                </button>
+                <button
+                    onClick={() => setActiveTab('trash')}
+                    className={`pb-3 font-semibold px-2 cursor-pointer transition-all border-b-2 ${
+                        activeTab === 'trash'
+                            ? 'border-rose-600 text-rose-600'
+                            : 'border-transparent text-gray-500 hover:text-gray-700'
+                    }`}
+                >
+                    🗑️ Vô hiệu hóa ({users.filter(u => u.is_deleted).length})
+                </button>
+            </div>
+
             {/* Bảng danh sách tài khoản */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <table className="w-full text-left border-collapse">
@@ -164,12 +221,14 @@ export default function AdminUserPage() {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100 text-sm">
-                        {users.length === 0 ? (
+                        {filteredUsers.length === 0 ? (
                             <tr>
-                                <td colSpan="6" className="p-6 text-center text-gray-500">Chưa có người dùng nào.</td>
+                                <td colSpan="6" className="p-6 text-center text-gray-500">
+                                    {activeTab === 'trash' ? 'Không có tài khoản nào bị vô hiệu hóa.' : 'Chưa có người dùng nào.'}
+                                </td>
                             </tr>
                         ) : (
-                            users.map((item) => (
+                            filteredUsers.map((item) => (
                                 <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
                                     <td className="p-4 text-gray-500 font-medium">#{item.id}</td>
                                     <td className="p-4 font-bold text-gray-800">{item.name}</td>
@@ -184,18 +243,37 @@ export default function AdminUserPage() {
                                     </td>
                                     <td className="p-4 text-center whitespace-nowrap">
                                         <div className="flex items-center justify-center gap-1.5">
-                                            <button
-                                                onClick={() => handleOpenEdit(item)}
-                                                className="bg-sky-50 hover:bg-sky-100 text-sky-600 px-2.5 py-1.5 rounded-lg font-bold text-xs transition-colors cursor-pointer"
-                                            >
-                                                Sửa
-                                            </button>
-                                            <button
-                                                onClick={() => handleDeleteUser(item.id)}
-                                                className="bg-rose-50 hover:bg-rose-100 text-rose-600 px-2.5 py-1.5 rounded-lg font-bold text-xs transition-colors cursor-pointer"
-                                            >
-                                                Xóa
-                                            </button>
+                                            {activeTab === 'trash' ? (
+                                                <>
+                                                    <button
+                                                        onClick={() => handleRestoreUser(item.id)}
+                                                        className="bg-green-50 hover:bg-green-100 text-green-600 px-2.5 py-1.5 rounded-lg font-bold text-xs transition-colors cursor-pointer"
+                                                    >
+                                                        🔄 Mở khóa
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleHardDeleteUser(item.id)}
+                                                        className="bg-rose-50 hover:bg-rose-100 text-rose-600 px-2.5 py-1.5 rounded-lg font-bold text-xs transition-colors cursor-pointer"
+                                                    >
+                                                        💥 Xóa vĩnh viễn
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <button
+                                                        onClick={() => handleOpenEdit(item)}
+                                                        className="bg-sky-50 hover:bg-sky-100 text-sky-600 px-2.5 py-1.5 rounded-lg font-bold text-xs transition-colors cursor-pointer"
+                                                    >
+                                                        Sửa
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteUser(item.id)}
+                                                        className="bg-rose-50 hover:bg-rose-100 text-rose-600 px-2.5 py-1.5 rounded-lg font-bold text-xs transition-colors cursor-pointer"
+                                                    >
+                                                        Khóa
+                                                    </button>
+                                                </>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>

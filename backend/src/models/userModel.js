@@ -8,13 +8,20 @@ const User = {
     },
 
     // Tìm người dùng theo ID
-    getById: async (id) => {
-        const [rows] = await db.query('SELECT id, name, email, role, created_at FROM users WHERE id = ?', [id]);
+    getById: async (id, includeDeleted = false) => {
+        const queryStr = includeDeleted
+            ? 'SELECT id, name, email, role, created_at, is_deleted FROM users WHERE id = ?'
+            : 'SELECT id, name, email, role, created_at, is_deleted FROM users WHERE id = ? AND (is_deleted = 0 OR is_deleted IS NULL)';
+        const [rows] = await db.query(queryStr, [id]);
         return rows[0];
     },
 
-    getAll: async () => {
-        const [rows] = await db.query('SELECT id, name, email, role, created_at FROM users ORDER BY id ASC');
+    // Lấy tất cả tài khoản
+    getAll: async (includeDeleted = false) => {
+        const queryStr = includeDeleted
+            ? 'SELECT id, name, email, role, created_at, is_deleted FROM users ORDER BY id ASC'
+            : 'SELECT id, name, email, role, created_at, is_deleted FROM users WHERE is_deleted = 0 OR is_deleted IS NULL ORDER BY id ASC';
+        const [rows] = await db.query(queryStr);
         return rows;
     },
 
@@ -22,7 +29,7 @@ const User = {
     create: async (userData) => {
         const { name, email, hashedPassword, role } = userData;
         const [result] = await db.query(
-            'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)',
+            'INSERT INTO users (name, email, password, role, is_deleted) VALUES (?, ?, ?, ?, 0)',
             [name, email, hashedPassword, role || 'customer']
         );
         return result;
@@ -46,8 +53,20 @@ const User = {
         }
     },
 
-    // Xóa người dùng (Admin)
+    // Xóa mềm người dùng (is_deleted = 1)
     delete: async (id) => {
+        const [result] = await db.query('UPDATE users SET is_deleted = 1 WHERE id = ?', [id]);
+        return result;
+    },
+
+    // Khôi phục người dùng (is_deleted = 0)
+    restore: async (id) => {
+        const [result] = await db.query('UPDATE users SET is_deleted = 0 WHERE id = ?', [id]);
+        return result;
+    },
+
+    // Xóa vĩnh viễn người dùng khỏi database
+    hardDelete: async (id) => {
         const [result] = await db.query('DELETE FROM users WHERE id = ?', [id]);
         return result;
     }

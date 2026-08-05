@@ -14,7 +14,13 @@ router.post('/', userController.createUser);
 // PUT /api/users/:id -> Cập nhật tài khoản
 router.put('/:id', userController.updateUser);
 
-// DELETE /api/users/:id -> Xóa tài khoản
+// DELETE /api/users/:id -> Xóa mềm tài khoản
 router.delete('/:id', userController.deleteUser);
+
+// POST /api/users/:id/restore -> Khôi phục tài khoản
+router.post('/:id/restore', userController.restoreUser);
+
+// DELETE /api/users/:id/hard -> Xóa vĩnh viễn tài khoản
+router.delete('/:id/hard', userController.hardDeleteUser);
 
 module.exports = router;
