@@ -7,6 +7,7 @@ export default function AdminPostPage() {
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [uploadingFile, setUploadingFile] = useState(false);
+    const [activeTab, setActiveTab] = useState('active'); // 'active' hoặc 'trash'
 
     // Modal state
     const [showModal, setShowModal] = useState(false);
@@ -21,7 +22,7 @@ export default function AdminPostPage() {
 
     const loadPosts = async () => {
         setLoading(true);
-        const res = await fetchApi('/posts');
+        const res = await fetchApi('/posts?admin=true');
         if (res.success) {
             setPosts(res.data);
         }
@@ -151,23 +152,55 @@ export default function AdminPostPage() {
         }
     };
 
-    // Xử lý Xóa bài viết
+    // Xử lý xóa mềm bài viết
     const handleDeletePost = async (id) => {
-        if (!confirm('Bạn có chắc chắn muốn xóa bài viết này? Thao tác này không thể hoàn tác.')) return;
+        if (!confirm('Bạn có chắc chắn muốn đưa bài viết này vào thùng rác?')) return;
 
         const res = await fetchApi(`/posts/${id}`, {
             method: 'DELETE'
         });
 
         if (res.success) {
-            alert('Xóa bài viết thành công!');
+            alert('Đã chuyển bài viết vào Thùng rác!');
             loadPosts();
         } else {
             alert(res.message || 'Xóa bài viết thất bại!');
         }
     };
 
+    // Xử lý khôi phục bài viết
+    const handleRestorePost = async (id) => {
+        const res = await fetchApi(`/posts/${id}/restore`, {
+            method: 'POST'
+        });
+
+        if (res.success) {
+            alert('Khôi phục bài viết thành công!');
+            loadPosts();
+        } else {
+            alert(res.message || 'Khôi phục bài viết thất bại!');
+        }
+    };
+
+    // Xử lý xóa vĩnh viễn bài viết
+    const handleHardDeletePost = async (id) => {
+        if (!confirm('CẢNH BÁO: Bạn có chắc muốn xóa vĩnh viễn bài viết này? Thao tác này sẽ xóa sạch bài viết khỏi database và KHÔNG thể hoàn tác!')) return;
+
+        const res = await fetchApi(`/posts/${id}/hard`, {
+            method: 'DELETE'
+        });
+
+        if (res.success) {
+            alert('Đã xóa vĩnh viễn bài viết khỏi hệ thống!');
+            loadPosts();
+        } else {
+            alert(res.message || 'Xóa bài viết vĩnh viễn thất bại!');
+        }
+    };
+
     if (loading) return <div className="p-8 text-center text-gray-500 font-medium">Đang tải danh sách bài viết...</div>;
+
+    const filteredPosts = posts.filter(p => activeTab === 'active' ? !p.is_deleted : p.is_deleted);
 
     return (
         <div className="p-8 max-w-7xl mx-auto">
@@ -185,6 +218,30 @@ export default function AdminPostPage() {
                 </button>
             </div>
 
+            {/* Tab điều hướng */}
+            <div className="flex gap-4 border-b border-gray-200 mb-6 text-sm">
+                <button
+                    onClick={() => setActiveTab('active')}
+                    className={`pb-3 font-semibold px-2 cursor-pointer transition-all border-b-2 ${
+                        activeTab === 'active'
+                            ? 'border-indigo-600 text-indigo-600'
+                            : 'border-transparent text-gray-500 hover:text-gray-700'
+                    }`}
+                >
+                    📦 Hoạt động ({posts.filter(p => !p.is_deleted).length})
+                </button>
+                <button
+                    onClick={() => setActiveTab('trash')}
+                    className={`pb-3 font-semibold px-2 cursor-pointer transition-all border-b-2 ${
+                        activeTab === 'trash'
+                            ? 'border-rose-600 text-rose-600'
+                            : 'border-transparent text-gray-500 hover:text-gray-700'
+                    }`}
+                >
+                    🗑️ Thùng rác ({posts.filter(p => p.is_deleted).length})
+                </button>
+            </div>
+
             {/* Bảng danh sách bài viết */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <table className="w-full text-left border-collapse">
@@ -199,12 +256,14 @@ export default function AdminPostPage() {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100 text-sm">
-                        {posts.length === 0 ? (
+                        {filteredPosts.length === 0 ? (
                             <tr>
-                                <td colSpan="6" className="p-6 text-center text-gray-500">Chưa có bài viết nào trong hệ thống.</td>
+                                <td colSpan="6" className="p-6 text-center text-gray-500">
+                                    {activeTab === 'trash' ? 'Thùng rác trống.' : 'Chưa có bài viết nào trong hệ thống.'}
+                                </td>
                             </tr>
                         ) : (
-                            posts.map((item) => (
+                            filteredPosts.map((item) => (
                                 <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
                                     <td className="p-4 text-gray-500 font-medium">#{item.id}</td>
                                     <td className="p-4">
@@ -224,18 +283,37 @@ export default function AdminPostPage() {
                                     </td>
                                     <td className="p-4 text-center whitespace-nowrap">
                                         <div className="flex items-center justify-center gap-1.5">
-                                            <button
-                                                onClick={() => handleOpenEdit(item)}
-                                                className="bg-sky-50 hover:bg-sky-100 text-sky-600 px-2.5 py-1.5 rounded-lg font-bold text-xs transition-colors cursor-pointer"
-                                            >
-                                                Sửa
-                                            </button>
-                                            <button
-                                                onClick={() => handleDeletePost(item.id)}
-                                                className="bg-rose-50 hover:bg-rose-100 text-rose-600 px-2.5 py-1.5 rounded-lg font-bold text-xs transition-colors cursor-pointer"
-                                            >
-                                                Xóa
-                                            </button>
+                                            {activeTab === 'trash' ? (
+                                                <>
+                                                    <button
+                                                        onClick={() => handleRestorePost(item.id)}
+                                                        className="bg-green-50 hover:bg-green-100 text-green-600 px-2.5 py-1.5 rounded-lg font-bold text-xs transition-colors cursor-pointer"
+                                                    >
+                                                        🔄 Khôi phục
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleHardDeletePost(item.id)}
+                                                        className="bg-rose-50 hover:bg-rose-100 text-rose-600 px-2.5 py-1.5 rounded-lg font-bold text-xs transition-colors cursor-pointer"
+                                                    >
+                                                        💥 Xóa vĩnh viễn
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <button
+                                                        onClick={() => handleOpenEdit(item)}
+                                                        className="bg-sky-50 hover:bg-sky-100 text-sky-600 px-2.5 py-1.5 rounded-lg font-bold text-xs transition-colors cursor-pointer"
+                                                    >
+                                                        Sửa
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeletePost(item.id)}
+                                                        className="bg-rose-50 hover:bg-rose-100 text-rose-600 px-2.5 py-1.5 rounded-lg font-bold text-xs transition-colors cursor-pointer"
+                                                    >
+                                                        Xóa
+                                                    </button>
+                                                </>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>

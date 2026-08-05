@@ -6,6 +6,7 @@ export default function AdminBrandPage() {
     const [brands, setBrands] = useState([]);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
+    const [activeTab, setActiveTab] = useState('active'); // 'active' hoặc 'trash'
 
     // Modal state
     const [showModal, setShowModal] = useState(false);
@@ -19,7 +20,7 @@ export default function AdminBrandPage() {
     // Load danh sách thương hiệu từ backend
     const loadBrands = async () => {
         setLoading(true);
-        const res = await fetchApi('/brands');
+        const res = await fetchApi('/brands?admin=true');
         if (res.success) {
             setBrands(res.data);
         }
@@ -111,23 +112,55 @@ export default function AdminBrandPage() {
         }
     };
 
-    // Xử lý Xóa thương hiệu
+    // Xử lý xóa mềm thương hiệu
     const handleDelete = async (id) => {
-        if (!confirm('Bạn có chắc chắn muốn xóa thương hiệu này? Các sản phẩm thuộc thương hiệu này sẽ chuyển về trạng thái Chưa có thương hiệu.')) return;
+        if (!confirm('Bạn có chắc chắn muốn đưa thương hiệu này vào thùng rác?')) return;
 
         const res = await fetchApi(`/brands/${id}`, {
             method: 'DELETE'
         });
 
         if (res.success) {
-            alert('Xóa thương hiệu thành công!');
+            alert('Đã chuyển thương hiệu vào Thùng rác!');
             loadBrands();
         } else {
             alert(res.message || 'Xóa thất bại!');
         }
     };
 
+    // Xử lý khôi phục thương hiệu
+    const handleRestore = async (id) => {
+        const res = await fetchApi(`/brands/${id}/restore`, {
+            method: 'POST'
+        });
+
+        if (res.success) {
+            alert('Khôi phục thương hiệu thành công!');
+            loadBrands();
+        } else {
+            alert(res.message || 'Khôi phục thất bại!');
+        }
+    };
+
+    // Xử lý xóa vĩnh viễn thương hiệu
+    const handleHardDelete = async (id) => {
+        if (!confirm('CẢNH BÁO: Bạn có chắc muốn xóa vĩnh viễn thương hiệu này? Thao tác này sẽ xóa sạch thương hiệu khỏi database và KHÔNG thể hoàn tác!')) return;
+
+        const res = await fetchApi(`/brands/${id}/hard`, {
+            method: 'DELETE'
+        });
+
+        if (res.success) {
+            alert('Đã xóa vĩnh viễn thương hiệu khỏi hệ thống!');
+            loadBrands();
+        } else {
+            alert(res.message || 'Xóa vĩnh viễn thất bại!');
+        }
+    };
+
     if (loading) return <div className="p-8 text-center text-gray-500 font-medium">Đang tải danh sách thương hiệu...</div>;
+
+    const filteredBrands = brands.filter(b => activeTab === 'active' ? !b.is_deleted : b.is_deleted);
 
     return (
         <div className="p-8 max-w-7xl mx-auto">
@@ -145,6 +178,30 @@ export default function AdminBrandPage() {
                 </button>
             </div>
 
+            {/* Tab điều hướng */}
+            <div className="flex gap-4 border-b border-gray-200 mb-6 text-sm">
+                <button
+                    onClick={() => setActiveTab('active')}
+                    className={`pb-3 font-semibold px-2 cursor-pointer transition-all border-b-2 ${
+                        activeTab === 'active'
+                            ? 'border-indigo-600 text-indigo-600'
+                            : 'border-transparent text-gray-500 hover:text-gray-700'
+                    }`}
+                >
+                    📦 Hoạt động ({brands.filter(b => !b.is_deleted).length})
+                </button>
+                <button
+                    onClick={() => setActiveTab('trash')}
+                    className={`pb-3 font-semibold px-2 cursor-pointer transition-all border-b-2 ${
+                        activeTab === 'trash'
+                            ? 'border-rose-600 text-rose-600'
+                            : 'border-transparent text-gray-500 hover:text-gray-700'
+                    }`}
+                >
+                    🗑️ Thùng rác ({brands.filter(b => b.is_deleted).length})
+                </button>
+            </div>
+
             {/* Bảng */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <table className="w-full text-left border-collapse">
@@ -157,30 +214,51 @@ export default function AdminBrandPage() {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100 text-sm">
-                        {brands.length === 0 ? (
+                        {filteredBrands.length === 0 ? (
                             <tr>
-                                <td colSpan="4" className="p-6 text-center text-gray-500">Chưa có thương hiệu nào.</td>
+                                <td colSpan="4" className="p-6 text-center text-gray-500">
+                                    {activeTab === 'trash' ? 'Thùng rác trống.' : 'Chưa có thương hiệu nào.'}
+                                </td>
                             </tr>
                         ) : (
-                            brands.map((item) => (
+                            filteredBrands.map((item) => (
                                 <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
                                     <td className="p-4 text-gray-500 font-medium">#{item.id}</td>
                                     <td className="p-4 font-bold text-amber-600">{item.name}</td>
                                     <td className="p-4 text-gray-600">{item.slug}</td>
                                     <td className="p-4 text-center whitespace-nowrap">
                                         <div className="flex items-center justify-center gap-1.5">
-                                            <button
-                                                onClick={() => handleOpenEdit(item)}
-                                                className="bg-sky-50 hover:bg-sky-100 text-sky-600 px-2.5 py-1.5 rounded-lg font-bold text-xs transition-colors cursor-pointer"
-                                            >
-                                                Sửa
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(item.id)}
-                                                className="bg-rose-50 hover:bg-rose-100 text-rose-600 px-2.5 py-1.5 rounded-lg font-bold text-xs transition-colors cursor-pointer"
-                                            >
-                                                Xóa
-                                            </button>
+                                            {activeTab === 'trash' ? (
+                                                <>
+                                                    <button
+                                                        onClick={() => handleRestore(item.id)}
+                                                        className="bg-green-50 hover:bg-green-100 text-green-600 px-2.5 py-1.5 rounded-lg font-bold text-xs transition-colors cursor-pointer"
+                                                    >
+                                                        🔄 Khôi phục
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleHardDelete(item.id)}
+                                                        className="bg-rose-50 hover:bg-rose-100 text-rose-600 px-2.5 py-1.5 rounded-lg font-bold text-xs transition-colors cursor-pointer"
+                                                    >
+                                                        💥 Xóa vĩnh viễn
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <button
+                                                        onClick={() => handleOpenEdit(item)}
+                                                        className="bg-sky-50 hover:bg-sky-100 text-sky-600 px-2.5 py-1.5 rounded-lg font-bold text-xs transition-colors cursor-pointer"
+                                                    >
+                                                        Sửa
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDelete(item.id)}
+                                                        className="bg-rose-50 hover:bg-rose-100 text-rose-600 px-2.5 py-1.5 rounded-lg font-bold text-xs transition-colors cursor-pointer"
+                                                    >
+                                                        Xóa
+                                                    </button>
+                                                </>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>

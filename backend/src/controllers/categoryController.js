@@ -3,7 +3,8 @@ const Category = require('../models/categoryModel');
 // 1. Lấy danh sách danh mục
 exports.getCategories = async (req, res) => {
     try {
-        const categories = await Category.getAll();
+        const includeDeleted = req.query.admin === 'true';
+        const categories = await Category.getAll(includeDeleted);
         res.status(200).json({
             success: true,
             count: categories.length,
@@ -22,7 +23,8 @@ exports.getCategories = async (req, res) => {
 exports.getCategoryById = async (req, res) => {
     try {
         const { id } = req.params;
-        const category = await Category.getById(id);
+        const includeDeleted = req.query.admin === 'true';
+        const category = await Category.getById(id, includeDeleted);
 
         if (!category) {
             return res.status(404).json({
@@ -85,7 +87,7 @@ exports.updateCategory = async (req, res) => {
             });
         }
 
-        const category = await Category.getById(id);
+        const category = await Category.getById(id, true);
         if (!category) {
             return res.status(404).json({
                 success: false,
@@ -109,12 +111,12 @@ exports.updateCategory = async (req, res) => {
     }
 };
 
-// 5. Xóa danh mục
+// 5. Xóa mềm danh mục
 exports.deleteCategory = async (req, res) => {
     try {
         const { id } = req.params;
 
-        const category = await Category.getById(id);
+        const category = await Category.getById(id, true);
         if (!category) {
             return res.status(404).json({
                 success: false,
@@ -126,12 +128,68 @@ exports.deleteCategory = async (req, res) => {
 
         res.status(200).json({
             success: true,
-            message: 'Xóa danh mục thành công'
+            message: 'Xóa danh mục thành công (đã đưa vào Thùng rác)'
         });
     } catch (error) {
         res.status(500).json({
             success: false,
             message: 'Lỗi khi xóa danh mục',
+            error: error.message
+        });
+    }
+};
+
+// 6. Khôi phục danh mục đã xóa mềm
+exports.restoreCategory = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const category = await Category.getById(id, true);
+        if (!category) {
+            return res.status(404).json({
+                success: false,
+                message: `Không tìm thấy danh mục có ID: ${id}`
+            });
+        }
+
+        await Category.restore(id);
+
+        res.status(200).json({
+            success: true,
+            message: 'Khôi phục danh mục thành công'
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Lỗi khi khôi phục danh mục',
+            error: error.message
+        });
+    }
+};
+
+// 7. Xóa vĩnh viễn danh mục khỏi database
+exports.hardDeleteCategory = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const category = await Category.getById(id, true);
+        if (!category) {
+            return res.status(404).json({
+                success: false,
+                message: `Không tìm thấy danh mục có ID: ${id}`
+            });
+        }
+
+        await Category.hardDelete(id);
+
+        res.status(200).json({
+            success: true,
+            message: 'Đã xóa vĩnh viễn danh mục khỏi hệ thống'
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Lỗi khi xóa vĩnh viễn danh mục',
             error: error.message
         });
     }

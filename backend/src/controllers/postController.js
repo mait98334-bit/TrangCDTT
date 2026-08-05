@@ -3,7 +3,8 @@ const Post = require('../models/postModel');
 // 1. Lấy danh sách bài viết
 exports.getPosts = async (req, res) => {
     try {
-        const posts = await Post.getAll();
+        const includeDeleted = req.query.admin === 'true';
+        const posts = await Post.getAll(includeDeleted);
         res.status(200).json({
             success: true,
             count: posts.length,
@@ -22,7 +23,8 @@ exports.getPosts = async (req, res) => {
 exports.getPostById = async (req, res) => {
     try {
         const { id } = req.params;
-        const post = await Post.getById(id);
+        const includeDeleted = req.query.admin === 'true';
+        const post = await Post.getById(id, includeDeleted);
 
         if (!post) {
             return res.status(404).json({
@@ -85,7 +87,7 @@ exports.updatePost = async (req, res) => {
             });
         }
 
-        const post = await Post.getById(id);
+        const post = await Post.getById(id, true);
         if (!post) {
             return res.status(404).json({
                 success: false,
@@ -109,12 +111,12 @@ exports.updatePost = async (req, res) => {
     }
 };
 
-// 5. Xóa bài viết
+// 5. Xóa mềm bài viết
 exports.deletePost = async (req, res) => {
     try {
         const { id } = req.params;
 
-        const post = await Post.getById(id);
+        const post = await Post.getById(id, true);
         if (!post) {
             return res.status(404).json({
                 success: false,
@@ -126,12 +128,68 @@ exports.deletePost = async (req, res) => {
 
         res.status(200).json({
             success: true,
-            message: 'Xóa bài viết thành công'
+            message: 'Xóa bài viết thành công (đã đưa vào Thùng rác)'
         });
     } catch (error) {
         res.status(500).json({
             success: false,
             message: 'Lỗi khi xóa bài viết',
+            error: error.message
+        });
+    }
+};
+
+// 6. Khôi phục bài viết đã xóa mềm
+exports.restorePost = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const post = await Post.getById(id, true);
+        if (!post) {
+            return res.status(404).json({
+                success: false,
+                message: `Không tìm thấy bài viết có ID: ${id}`
+            });
+        }
+
+        await Post.restore(id);
+
+        res.status(200).json({
+            success: true,
+            message: 'Khôi phục bài viết thành công'
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Lỗi khi khôi phục bài viết',
+            error: error.message
+        });
+    }
+};
+
+// 7. Xóa vĩnh viễn bài viết khỏi database
+exports.hardDeletePost = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const post = await Post.getById(id, true);
+        if (!post) {
+            return res.status(404).json({
+                success: false,
+                message: `Không tìm thấy bài viết có ID: ${id}`
+            });
+        }
+
+        await Post.hardDelete(id);
+
+        res.status(200).json({
+            success: true,
+            message: 'Đã xóa vĩnh viễn bài viết khỏi hệ thống'
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Lỗi khi xóa vĩnh viễn bài viết',
             error: error.message
         });
     }

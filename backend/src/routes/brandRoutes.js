@@ -14,7 +14,13 @@ router.post('/', brandController.createBrand);
 // PUT /api/brands/:id -> Cập nhật thương hiệu
 router.put('/:id', brandController.updateBrand);
 
-// DELETE /api/brands/:id -> Xóa thương hiệu
+// POST /api/brands/:id/restore -> Khôi phục thương hiệu đã xóa mềm
+router.post('/:id/restore', brandController.restoreBrand);
+
+// DELETE /api/brands/:id/hard -> Xóa vĩnh viễn thương hiệu
+router.delete('/:id/hard', brandController.hardDeleteBrand);
+
+// DELETE /api/brands/:id -> Xóa mềm thương hiệu
 router.delete('/:id', brandController.deleteBrand);
 
 module.exports = router;

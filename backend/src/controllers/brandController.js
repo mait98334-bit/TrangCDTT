@@ -3,7 +3,8 @@ const Brand = require('../models/brandModel');
 // 1. Lấy danh sách thương hiệu
 exports.getBrands = async (req, res) => {
     try {
-        const brands = await Brand.getAll();
+        const includeDeleted = req.query.admin === 'true';
+        const brands = await Brand.getAll(includeDeleted);
         res.status(200).json({
             success: true,
             count: brands.length,
@@ -22,7 +23,8 @@ exports.getBrands = async (req, res) => {
 exports.getBrandById = async (req, res) => {
     try {
         const { id } = req.params;
-        const brand = await Brand.getById(id);
+        const includeDeleted = req.query.admin === 'true';
+        const brand = await Brand.getById(id, includeDeleted);
 
         if (!brand) {
             return res.status(404).json({
@@ -85,7 +87,7 @@ exports.updateBrand = async (req, res) => {
             });
         }
 
-        const brand = await Brand.getById(id);
+        const brand = await Brand.getById(id, true);
         if (!brand) {
             return res.status(404).json({
                 success: false,
@@ -109,12 +111,12 @@ exports.updateBrand = async (req, res) => {
     }
 };
 
-// 5. Xóa thương hiệu
+// 5. Xóa mềm thương hiệu
 exports.deleteBrand = async (req, res) => {
     try {
         const { id } = req.params;
 
-        const brand = await Brand.getById(id);
+        const brand = await Brand.getById(id, true);
         if (!brand) {
             return res.status(404).json({
                 success: false,
@@ -126,12 +128,68 @@ exports.deleteBrand = async (req, res) => {
 
         res.status(200).json({
             success: true,
-            message: 'Xóa thương hiệu thành công'
+            message: 'Xóa thương hiệu thành công (đã đưa vào Thùng rác)'
         });
     } catch (error) {
         res.status(500).json({
             success: false,
             message: 'Lỗi khi xóa thương hiệu',
+            error: error.message
+        });
+    }
+};
+
+// 6. Khôi phục thương hiệu đã xóa mềm
+exports.restoreBrand = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const brand = await Brand.getById(id, true);
+        if (!brand) {
+            return res.status(404).json({
+                success: false,
+                message: `Không tìm thấy thương hiệu có ID: ${id}`
+            });
+        }
+
+        await Brand.restore(id);
+
+        res.status(200).json({
+            success: true,
+            message: 'Khôi phục thương hiệu thành công'
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Lỗi khi khôi phục thương hiệu',
+            error: error.message
+        });
+    }
+};
+
+// 7. Xóa vĩnh viễn thương hiệu khỏi database
+exports.hardDeleteBrand = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const brand = await Brand.getById(id, true);
+        if (!brand) {
+            return res.status(404).json({
+                success: false,
+                message: `Không tìm thấy thương hiệu có ID: ${id}`
+            });
+        }
+
+        await Brand.hardDelete(id);
+
+        res.status(200).json({
+            success: true,
+            message: 'Đã xóa vĩnh viễn thương hiệu khỏi hệ thống'
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Lỗi khi xóa vĩnh viễn thương hiệu',
             error: error.message
         });
     }
