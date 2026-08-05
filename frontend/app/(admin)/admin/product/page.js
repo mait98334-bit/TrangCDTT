@@ -486,13 +486,14 @@ export default function AdminProductPage() {
             {/* Modal Dialog Thêm/Sửa sản phẩm chính */}
             {showModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 overflow-y-auto">
-                    <div className="bg-white w-full max-w-lg rounded-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                    <div className="bg-white w-full max-w-lg rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
                         {/* Modal Header */}
                         <div className="px-6 py-4 bg-gray-50 border-b border-gray-100 flex justify-between items-center">
                             <h3 className="text-xl font-bold text-gray-800">
                                 {modalType === 'add' ? 'Thêm sản phẩm mới' : 'Cập nhật sản phẩm'}
                             </h3>
                             <button
+                                type="button"
                                 onClick={() => setShowModal(false)}
                                 className="text-gray-400 hover:text-gray-600 font-semibold text-lg cursor-pointer"
                             >
@@ -500,8 +501,10 @@ export default function AdminProductPage() {
                             </button>
                         </div>
 
-                        {/* Modal Body / Form */}
-                        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                        {/* Form wrapper */}
+                        <form onSubmit={handleSubmit} className="flex-1 flex flex-col overflow-hidden">
+                            {/* Scrollable Form Body */}
+                            <div className="flex-1 overflow-y-auto p-6 space-y-4">
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-1.5">Tên sản phẩm *</label>
                                 <input
@@ -683,8 +686,10 @@ export default function AdminProductPage() {
                                 </div>
                             </div>
 
+                            </div>
+
                             {/* Modal Footer */}
-                            <div className="pt-4 border-t border-gray-100 flex justify-end gap-3 text-sm">
+                            <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-3 text-sm">
                                 <button
                                     type="button"
                                     onClick={() => setShowModal(false)}
