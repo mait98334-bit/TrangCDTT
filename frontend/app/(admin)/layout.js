@@ -82,11 +82,7 @@ export default function AdminLayout({ children }) {
                     })}
                 </nav>
 
-                <div className="p-5 border-t border-slate-800">
-                    <Link href="/" className="flex items-center justify-center gap-2 w-full bg-slate-800 hover:bg-slate-700 text-slate-200 py-3 rounded-xl text-base font-semibold transition-colors">
-                        <span>🌐</span> Về trang chủ Web
-                    </Link>
-                </div>
+                {/* Sidebar footer removed to move button to header */}
             </aside>
 
             {/* Nội dung bên phải */}
@@ -94,13 +90,16 @@ export default function AdminLayout({ children }) {
                 <header className="h-20 bg-white border-b border-gray-200 flex items-center justify-between px-10 shadow-sm">
                     <span className="text-base font-medium text-gray-500">Hệ thống quản trị đồ án tốt nghiệp</span>
                     <div className="flex items-center gap-4">
+                        <Link href="/" className="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors flex items-center gap-2 cursor-pointer">
+                            <span>🌐</span> Về trang chủ Web
+                        </Link>
                         <div className="w-10 h-10 bg-indigo-600 text-white rounded-full flex items-center justify-semibold text-base shadow-sm">
                             AD
                         </div>
                         <span className="text-base font-bold text-gray-800">Admin</span>
                         <button
                             onClick={() => { localStorage.removeItem('user'); router.push('/login'); }}
-                            className="ml-4 bg-rose-50 text-rose-600 px-4 py-2 rounded-xl text-sm font-semibold hover:bg-rose-100 transition-colors"
+                            className="ml-4 bg-rose-50 text-rose-600 px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-rose-100 transition-colors cursor-pointer"
                         >
                             Đăng xuất
                         </button>
