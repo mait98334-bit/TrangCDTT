@@ -11,7 +11,7 @@ const Product = {
              LEFT JOIN categories c ON p.category_id = c.id 
              LEFT JOIN brands b ON p.brand_id = b.id
              ${whereClause}
-             ORDER BY p.id ASC`
+             ORDER BY p.brand_id ASC, p.id ASC`
         );
         return rows.map(prod => {
             const price = Number(prod.price || 0);
