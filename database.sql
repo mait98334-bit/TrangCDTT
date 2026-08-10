@@ -120,7 +120,7 @@ CREATE TABLE `categories` (
 
 LOCK TABLES `categories` WRITE;
 /*!40000 ALTER TABLE `categories` DISABLE KEYS */;
-INSERT INTO `categories` VALUES (1,'Áo Nam','ao-nam','2026-07-30 07:28:09',0),(2,'Quần Nam','quan-nam','2026-07-30 07:28:09',0),(3,'Phụ Kiện','phu-kien','2026-07-30 07:28:09',0),(4,'Áo Khoác Nam','ao-khoac-nam','2026-07-30 07:35:02',0),(5,'Giày Thể Thao','giay-the-thao','2026-08-10 02:46:33',0),(6,'Bộ Đồ Thể Thao','bo-do-the-thao','2026-08-10 02:46:33',0),(7,'?o N?','ao-nu','2026-08-10 03:19:48',0),(8,'Qu?n N?','quan-nu','2026-08-10 03:19:48',0),(9,'?o Kho?c N?','ao-khoac-nu','2026-08-10 03:19:48',0);
+INSERT INTO `categories` VALUES (1,'Áo Nam','ao-nam','2026-07-30 07:28:09',0),(2,'Quần Nam','quan-nam','2026-07-30 07:28:09',0),(3,'Phụ Kiện','phu-kien','2026-07-30 07:28:09',0),(4,'Áo Khoác Nam','ao-khoac-nam','2026-07-30 07:35:02',0),(5,'Giày Thể Thao','giay-the-thao','2026-08-10 02:46:33',0),(6,'Bộ Đồ Thể Thao','bo-do-the-thao','2026-08-10 02:46:33',0),(7,'Áo Nữ','ao-nu','2026-08-10 03:19:48',0),(8,'Quần Nữ','quan-nu','2026-08-10 03:19:48',0),(9,'Áo Khoác Nữ','ao-khoac-nu','2026-08-10 03:19:48',0);
 /*!40000 ALTER TABLE `categories` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -411,4 +411,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-08-10 10:20:10
+-- Dump completed on 2026-08-10 10:37:33
