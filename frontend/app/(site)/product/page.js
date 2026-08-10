@@ -3,6 +3,7 @@ import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { fetchApi } from '@/services/apiService';
+import { getImageUrl } from '@/services/imageHelper';
 
 export const dynamic = 'force-dynamic';
 
@@ -108,7 +109,7 @@ function ProductsContent() {
                                     </span>
                                 )}
                                 <img
-                                    src={item.image || 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=400&auto=format&fit=crop'}
+                                    src={getImageUrl(item.image)}
                                     alt={item.name}
                                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                                     onError={(e) => {

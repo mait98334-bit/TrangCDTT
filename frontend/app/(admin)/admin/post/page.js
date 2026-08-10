@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { fetchApi } from '@/services/apiService';
+import { getImageUrl } from '@/services/imageHelper';
 
 export default function AdminPostPage() {
     const [posts, setPosts] = useState([]);
@@ -276,7 +277,7 @@ export default function AdminPostPage() {
                                     <td className="p-4 text-gray-500 font-medium">#{item.id}</td>
                                     <td className="p-4">
                                         <img
-                                            src={item.image || 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?q=80&w=200&auto=format&fit=crop'}
+                                            src={getImageUrl(item.image)}
                                             alt={item.title}
                                             className="w-16 h-12 object-cover rounded-lg border border-gray-100 shadow-sm"
                                             onError={(e) => {
@@ -465,7 +466,7 @@ export default function AdminPostPage() {
                                     <div className="pt-2">
                                         <span className="block text-xs text-gray-400 mb-1.5">Xem trước ảnh bìa:</span>
                                         <img
-                                            src={formData.image}
+                                            src={getImageUrl(formData.image)}
                                             alt="Preview post"
                                             className="w-32 h-20 object-cover rounded-lg border border-gray-200"
                                             onError={(e) => {

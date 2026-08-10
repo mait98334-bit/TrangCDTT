@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { fetchApi } from '@/services/apiService';
+import { getImageUrl } from '@/services/imageHelper';
 
 export default function AdminProductPage() {
     const [products, setProducts] = useState([]);
@@ -471,7 +472,7 @@ export default function AdminProductPage() {
                                     <td className="p-4 text-gray-500 font-medium">#{item.id}</td>
                                     <td className="p-4">
                                         <img
-                                            src={item.image || 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=200&auto=format&fit=crop'}
+                                            src={getImageUrl(item.image)}
                                             alt={item.name}
                                             className="w-12 h-12 object-cover rounded-lg border border-gray-100 shadow-sm"
                                             onError={(e) => {
@@ -758,7 +759,7 @@ export default function AdminProductPage() {
                                         {formData.image && (
                                             <div className="relative w-24 h-24 rounded-lg overflow-hidden border border-gray-200 shadow-sm mx-auto sm:mx-0">
                                                 <img
-                                                    src={formData.image}
+                                                    src={getImageUrl(formData.image)}
                                                     alt="Preview"
                                                     className="w-full h-full object-cover"
                                                 />
@@ -1040,7 +1041,7 @@ export default function AdminProductPage() {
                                             <div className="flex justify-between items-center">
                                                 {newVariantData.image ? (
                                                     <div className="relative w-12 h-12 rounded-lg overflow-hidden border border-gray-200 shadow-sm">
-                                                        <img src={newVariantData.image} className="w-full h-full object-cover" />
+                                                        <img src={getImageUrl(newVariantData.image)} className="w-full h-full object-cover" />
                                                         <button
                                                             type="button"
                                                             onClick={() => setNewVariantData(prev => ({ ...prev, image: '' }))}
@@ -1086,7 +1087,7 @@ export default function AdminProductPage() {
                                                             <td className="p-3 text-gray-400">#{v.id}</td>
                                                             <td className="p-3">
                                                                 {v.image ? (
-                                                                    <img src={v.image} className="w-8 h-8 object-cover rounded-md border border-gray-100 shadow-sm" />
+                                                                    <img src={getImageUrl(v.image)} className="w-8 h-8 object-cover rounded-md border border-gray-100 shadow-sm" />
                                                                 ) : (
                                                                     <span className="text-gray-400 italic text-[10px]">Không có</span>
                                                                 )}

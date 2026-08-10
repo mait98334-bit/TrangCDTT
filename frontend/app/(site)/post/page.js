@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { fetchApi } from '@/services/apiService';
+import { getImageUrl } from '@/services/imageHelper';
 
 export default function PostsPage() {
     const [posts, setPosts] = useState([]);
@@ -58,7 +59,7 @@ export default function PostsPage() {
                         <div key={item.id} className="group bg-white border border-slate-100 rounded-3xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col h-full">
                             <div className="relative aspect-[16/10] overflow-hidden bg-slate-50">
                                 <img
-                                    src={item.image || 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?q=80&w=400&auto=format&fit=crop'}
+                                    src={getImageUrl(item.image)}
                                     alt={item.title}
                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                     onError={(e) => {
@@ -117,7 +118,7 @@ export default function PostsPage() {
                             {/* Image cover */}
                             <div className="rounded-2xl overflow-hidden aspect-[16/9] border border-slate-100 bg-slate-50 shadow-sm">
                                 <img
-                                    src={selectedPost.image || 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?q=80&w=800&auto=format&fit=crop'}
+                                    src={getImageUrl(selectedPost.image)}
                                     alt={selectedPost.title}
                                     className="w-full h-full object-cover"
                                     onError={(e) => {

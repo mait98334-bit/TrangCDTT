@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { fetchApi } from '@/services/apiService';
+import { getImageUrl } from '@/services/imageHelper';
 
 export default function AdminCartPage() {
     const [carts, setCarts] = useState([]);
@@ -237,7 +238,7 @@ export default function AdminCartPage() {
                                                         <td className="p-3 font-bold text-gray-800 max-w-[200px] truncate">{item.name}</td>
                                                         <td className="p-3 text-center">
                                                             <img
-                                                                src={item.image || 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=200&auto=format&fit=crop'}
+                                                                src={getImageUrl(item.image)}
                                                                 alt={item.name}
                                                                 className="w-10 h-10 object-cover rounded-lg border border-gray-100 mx-auto"
                                                                 onError={(e) => {

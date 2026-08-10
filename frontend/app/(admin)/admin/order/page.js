@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { fetchApi } from '@/services/apiService';
+import { getImageUrl } from '@/services/imageHelper';
 
 export default function AdminOrderPage() {
     const [orders, setOrders] = useState([]);
@@ -337,7 +338,7 @@ export default function AdminOrderPage() {
                                                         <td className="p-3 font-bold text-gray-800 max-w-[250px] truncate">{item.product_name}</td>
                                                         <td className="p-3 text-center">
                                                             <img
-                                                                src={item.image || 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=200&auto=format&fit=crop'}
+                                                                src={getImageUrl(item.image)}
                                                                 alt={item.product_name}
                                                                 className="w-10 h-10 object-cover rounded-lg border border-gray-100 mx-auto"
                                                                 onError={(e) => {

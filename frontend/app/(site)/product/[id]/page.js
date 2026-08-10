@@ -2,6 +2,7 @@
 import { useState, useEffect, use } from 'react';
 import { fetchApi } from '@/services/apiService';
 import Link from 'next/link';
+import { getImageUrl } from '@/services/imageHelper';
 
 export const dynamic = 'force-dynamic';
 
@@ -190,7 +191,7 @@ export default function ProductDetailPage({ params }) {
                             {/* Main Image */}
                             <div className="aspect-square w-full rounded-2xl overflow-hidden border border-gray-100 bg-gray-50 relative shadow-inner group">
                                 <img
-                                    src={activeImage}
+                                    src={getImageUrl(activeImage)}
                                     alt={product.name}
                                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                                     onError={(e) => {
@@ -209,7 +210,7 @@ export default function ProductDetailPage({ params }) {
                                             activeImage === product.image ? 'border-indigo-600 shadow-md scale-95' : 'border-transparent hover:border-gray-300'
                                         }`}
                                     >
-                                        <img src={product.image || ''} alt="Thumbnail main" className="w-full h-full object-cover" />
+                                        <img src={getImageUrl(product.image)} alt="Thumbnail main" className="w-full h-full object-cover" />
                                     </button>
 
                                     {/* Extra Images */}
@@ -221,7 +222,7 @@ export default function ProductDetailPage({ params }) {
                                                 activeImage === img.image_url ? 'border-indigo-600 shadow-md scale-95' : 'border-transparent hover:border-gray-300'
                                             }`}
                                         >
-                                            <img src={img.image_url} alt="Thumbnail extra" className="w-full h-full object-cover" />
+                                            <img src={getImageUrl(img.image_url)} alt="Thumbnail extra" className="w-full h-full object-cover" />
                                         </button>
                                     ))}
                                 </div>
@@ -313,7 +314,7 @@ export default function ProductDetailPage({ params }) {
                                                     }`}
                                                 >
                                                     {v.image ? (
-                                                        <img src={v.image} alt={v.color || 'variant'} className="w-10 h-10 object-cover rounded-lg border border-gray-100" />
+                                                        <img src={getImageUrl(v.image)} alt={v.color || 'variant'} className="w-10 h-10 object-cover rounded-lg border border-gray-100" />
                                                     ) : (
                                                         <div className="w-10 h-10 bg-indigo-50 rounded-lg flex items-center justify-center text-xs font-bold text-indigo-500 uppercase">
                                                             {v.color ? v.color.substring(0,2) : (v.size || 'VT')}

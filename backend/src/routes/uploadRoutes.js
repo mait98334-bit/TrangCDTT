@@ -53,8 +53,8 @@ router.post('/', (req, res) => {
             return res.status(400).json({ success: false, message: 'Vui lòng chọn ảnh để tải lên' });
         }
 
-        // Trả về đường dẫn ảnh đầy đủ
-        const imageUrl = `http://localhost:5000/uploads/${req.file.filename}`;
+        // Trả về đường dẫn ảnh tương đối
+        const imageUrl = `/uploads/${req.file.filename}`;
         res.status(200).json({
             success: true,
             message: 'Tải ảnh lên thành công',

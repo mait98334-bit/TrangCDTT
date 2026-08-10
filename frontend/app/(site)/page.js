@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { fetchApi } from '@/services/apiService';
+import { getImageUrl } from '@/services/imageHelper';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,7 +20,7 @@ export default function HomePage() {
             tag: "Nike Collection ⚡",
             title: "Định Hình Phong Cách Nike",
             description: "Khám phá bộ sưu tập quần áo và giày thể thao Nike Air Max, Dri-FIT chính hãng mới nhất. Tối ưu chất liệu cho trải nghiệm đỉnh cao.",
-            image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=800&auto=format&fit=crop",
+            image: "/uploads/slide_1.jpg",
             buttonText: "Mua Ngay Cực Hot",
             buttonLink: "/product?brand=1",
             bgColor: "from-slate-950 via-indigo-955 to-slate-900"
@@ -29,7 +30,7 @@ export default function HomePage() {
             tag: "Adidas Originals ✨",
             title: "Đường Phố Cùng Adidas",
             description: "Khởi nguồn năng lượng tự do cùng dòng sản phẩm Adidas Originals kinh điển. Tối giản, cá tính và vô cùng phong cách cho giới trẻ.",
-            image: "https://images.unsplash.com/photo-1518002171953-a080ee81be25?q=80&w=800&auto=format&fit=crop",
+            image: "/uploads/slide_2.jpg",
             buttonText: "Xem BST Adidas",
             buttonLink: "/product?brand=2",
             bgColor: "from-slate-955 via-emerald-955 to-slate-900"
@@ -39,7 +40,7 @@ export default function HomePage() {
             tag: "Puma Motorsport 🏎️",
             title: "Bứt Phá Cùng Puma",
             description: "Sự kết hợp hoàn hảo giữa phong cách đường phố năng động và tinh thần thể thao tốc độ đầy cá tính. Khám phá ngay các mẫu Puma Suede mới nhất.",
-            image: "https://images.unsplash.com/photo-1608231387042-66d1773070a5?q=80&w=800&auto=format&fit=crop",
+            image: "/uploads/slide_3.jpg",
             buttonText: "Khám Phá Puma",
             buttonLink: "/product?brand=3",
             bgColor: "from-slate-955 via-rose-955 to-slate-900"
@@ -110,7 +111,7 @@ export default function HomePage() {
                     </span>
                 )}
                 <img
-                    src={item.image || 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=400&auto=format&fit=crop'}
+                    src={getImageUrl(item.image)}
                     alt={item.name}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     onError={(e) => {
@@ -207,7 +208,7 @@ export default function HomePage() {
                                 <div className="relative w-full md:w-1/2 h-[160px] md:h-full flex items-center justify-center overflow-hidden mt-4 md:mt-0">
                                     <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-l from-transparent to-slate-950/40 z-10"></div>
                                     <img
-                                        src={slide.image}
+                                        src={getImageUrl(slide.image)}
                                         alt={slide.title}
                                         className="w-full h-full object-cover rounded-2xl md:rounded-none md:absolute md:inset-y-0 md:right-0 md:w-[90%] md:h-[80%] md:my-auto md:rounded-3xl shadow-2xl transition-transform duration-1000 scale-100 hover:scale-105"
                                     />
@@ -361,7 +362,7 @@ export default function HomePage() {
                             <div key={item.id} className="group bg-white border border-slate-100 rounded-3xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col h-full">
                                 <div className="relative aspect-[16/10] overflow-hidden bg-slate-50">
                                     <img
-                                        src={item.image || 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?q=80&w=400&auto=format&fit=crop'}
+                                        src={getImageUrl(item.image)}
                                         alt={item.title}
                                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                         onError={(e) => {
