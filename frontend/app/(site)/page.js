@@ -11,6 +11,55 @@ export default function HomePage() {
     const [brands, setBrands] = useState([]);
     const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [currentSlide, setCurrentSlide] = useState(0);
+
+    const slides = [
+        {
+            id: 1,
+            tag: "Nike Collection ⚡",
+            title: "Định Hình Phong Cách Nike",
+            description: "Khám phá bộ sưu tập quần áo và giày thể thao Nike Air Max, Dri-FIT chính hãng mới nhất. Tối ưu chất liệu cho trải nghiệm đỉnh cao.",
+            image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=800&auto=format&fit=crop",
+            buttonText: "Mua Ngay Cực Hot",
+            buttonLink: "/product?brand=1",
+            bgColor: "from-slate-950 via-indigo-955 to-slate-900"
+        },
+        {
+            id: 2,
+            tag: "Adidas Originals ✨",
+            title: "Đường Phố Cùng Adidas",
+            description: "Khởi nguồn năng lượng tự do cùng dòng sản phẩm Adidas Originals kinh điển. Tối giản, cá tính và vô cùng phong cách cho giới trẻ.",
+            image: "https://images.unsplash.com/photo-1518002171953-a080ee81be25?q=80&w=800&auto=format&fit=crop",
+            buttonText: "Xem BST Adidas",
+            buttonLink: "/product?brand=2",
+            bgColor: "from-slate-955 via-emerald-955 to-slate-900"
+        },
+        {
+            id: 3,
+            tag: "Puma Motorsport 🏎️",
+            title: "Bứt Phá Cùng Puma",
+            description: "Sự kết hợp hoàn hảo giữa phong cách đường phố năng động và tinh thần thể thao tốc độ đầy cá tính. Khám phá ngay các mẫu Puma Suede mới nhất.",
+            image: "https://images.unsplash.com/photo-1608231387042-66d1773070a5?q=80&w=800&auto=format&fit=crop",
+            buttonText: "Khám Phá Puma",
+            buttonLink: "/product?brand=3",
+            bgColor: "from-slate-955 via-rose-955 to-slate-900"
+        }
+    ];
+
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setCurrentSlide((prev) => (prev + 1) % slides.length);
+        }, 5000);
+        return () => clearInterval(timer);
+    }, [slides.length]);
+
+    const handlePrevSlide = () => {
+        setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
+    };
+
+    const handleNextSlide = () => {
+        setCurrentSlide((prev) => (prev + 1) % slides.length);
+    };
 
     useEffect(() => {
         const loadHomeData = async () => {
@@ -114,37 +163,87 @@ export default function HomePage() {
 
     return (
         <div className="space-y-16 pb-20">
-            {/* 1. Hero Banner Section */}
-            <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 rounded-3xl py-20 px-6 sm:px-12 max-w-7xl mx-auto shadow-2xl">
-                {/* Decorative glow */}
-                <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl -z-10 animate-pulse"></div>
-                <div className="absolute -bottom-10 -left-10 w-80 h-80 bg-rose-500/10 rounded-full blur-3xl -z-10"></div>
+            {/* 1. Hero Banner Section (Sliding) */}
+            <section className="relative overflow-hidden bg-slate-900 rounded-3xl h-[480px] sm:h-[500px] max-w-7xl mx-auto shadow-2xl group">
+                {/* Slides wrapper */}
+                <div className="relative w-full h-full">
+                    {slides.map((slide, idx) => {
+                        const isActive = idx === currentSlide;
+                        return (
+                            <div
+                                key={slide.id}
+                                className={`absolute inset-0 w-full h-full bg-gradient-to-br ${slide.bgColor} transition-opacity duration-1000 ease-in-out flex flex-col md:flex-row items-center justify-between px-6 sm:px-12 md:px-20 py-8 md:py-0 ${
+                                    isActive ? 'opacity-100 z-10' : 'opacity-0 pointer-events-none z-0'
+                                }`}
+                            >
+                                {/* Left side content */}
+                                <div className="max-w-xl text-left space-y-4 md:space-y-6 z-10 mt-8 md:mt-0">
+                                    <span className="inline-block bg-white/10 text-indigo-300 border border-white/10 px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider">
+                                        {slide.tag}
+                                    </span>
+                                    <h1 className="text-3xl sm:text-5xl font-black text-white leading-tight tracking-tight">
+                                        {slide.title}
+                                    </h1>
+                                    <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-lg line-clamp-3">
+                                        {slide.description}
+                                    </p>
+                                    <div className="pt-2 flex flex-wrap gap-3">
+                                        <Link
+                                            href={slide.buttonLink}
+                                            className="bg-white hover:bg-slate-100 text-slate-900 px-6 py-3 rounded-2xl font-bold shadow-lg transition-all transform hover:-translate-y-0.5 text-xs sm:text-sm cursor-pointer"
+                                        >
+                                            {slide.buttonText}
+                                        </Link>
+                                        <Link
+                                            href="/contact"
+                                            className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-6 py-3 rounded-2xl font-bold transition-all text-xs sm:text-sm backdrop-blur-sm cursor-pointer"
+                                        >
+                                            Liên Hệ Tư Vấn
+                                        </Link>
+                                    </div>
+                                </div>
 
-                <div className="max-w-2xl text-left space-y-6">
-                    <span className="inline-block bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider">
-                        BST Thu Đông 2026 🔥
-                    </span>
-                    <h1 className="text-4xl sm:text-6xl font-black text-white leading-tight tracking-tight">
-                        Định Hình <br className="hidden sm:inline"/>
-                        <span className="bg-gradient-to-r from-indigo-400 via-sky-400 to-rose-400 bg-clip-text text-transparent">Phong Cách</span> Mới
-                    </h1>
-                    <p className="text-sm sm:text-base text-slate-300 leading-relaxed max-w-lg">
-                        Khám phá bộ sưu tập quần áo và phụ kiện thể thao Nike, Adidas chính hãng mới nhất. Đa dạng kiểu dáng, tối ưu chất liệu cho trải nghiệm tập luyện tuyệt vời nhất.
-                    </p>
-                    <div className="pt-4 flex flex-wrap gap-4">
-                        <Link
-                            href="/product"
-                            className="bg-white hover:bg-slate-100 text-slate-900 px-6 py-3 rounded-2xl font-bold shadow-lg transition-all transform hover:-translate-y-0.5 text-sm"
-                        >
-                            Mua Ngay Cực Hot
-                        </Link>
-                        <Link
-                            href="/contact"
-                            className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-6 py-3 rounded-2xl font-bold transition-all text-sm backdrop-blur-sm"
-                        >
-                            Liên Hệ Tư Vấn
-                        </Link>
-                    </div>
+                                {/* Right side image */}
+                                <div className="relative w-full md:w-1/2 h-[160px] md:h-full flex items-center justify-center overflow-hidden mt-4 md:mt-0">
+                                    <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-l from-transparent to-slate-950/40 z-10"></div>
+                                    <img
+                                        src={slide.image}
+                                        alt={slide.title}
+                                        className="w-full h-full object-cover rounded-2xl md:rounded-none md:absolute md:inset-y-0 md:right-0 md:w-[90%] md:h-[80%] md:my-auto md:rounded-3xl shadow-2xl transition-transform duration-1000 scale-100 hover:scale-105"
+                                    />
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+
+                {/* Left Navigation Arrow */}
+                <button
+                    onClick={handlePrevSlide}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 z-20 bg-white/10 hover:bg-white/25 text-white w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-md transition-all opacity-0 group-hover:opacity-100 cursor-pointer shadow-lg border border-white/10 hover:scale-110"
+                >
+                    <span className="text-lg font-black">←</span>
+                </button>
+
+                {/* Right Navigation Arrow */}
+                <button
+                    onClick={handleNextSlide}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-white/10 hover:bg-white/25 text-white w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-md transition-all opacity-0 group-hover:opacity-100 cursor-pointer shadow-lg border border-white/10 hover:scale-110"
+                >
+                    <span className="text-lg font-black">→</span>
+                </button>
+
+                {/* Slide Indicators / Dots */}
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+                    {slides.map((_, idx) => (
+                        <button
+                            key={idx}
+                            onClick={() => { setCurrentSlide(idx); }}
+                            className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
+                                idx === currentSlide ? 'w-8 bg-indigo-400' : 'w-2 bg-white/40 hover:bg-white/60'
+                            }`}
+                        ></button>
+                    ))}
                 </div>
             </section>
 
