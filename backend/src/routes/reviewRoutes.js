@@ -11,7 +11,13 @@ router.get('/', reviewController.getReviews);
 // POST /api/reviews -> Thêm đánh giá mới
 router.post('/', reviewController.createReview);
 
-// DELETE /api/reviews/:id -> Xóa đánh giá (Admin)
+// POST /api/reviews/:id/restore -> Khôi phục đánh giá (Admin)
+router.post('/:id/restore', reviewController.restoreReview);
+
+// DELETE /api/reviews/:id/hard -> Xóa vĩnh viễn đánh giá (Admin)
+router.delete('/:id/hard', reviewController.hardDeleteReview);
+
+// DELETE /api/reviews/:id -> Xóa mềm đánh giá (Admin)
 router.delete('/:id', reviewController.deleteReview);
 
 module.exports = router;

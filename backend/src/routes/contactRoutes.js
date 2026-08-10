@@ -8,7 +8,13 @@ router.get('/', contactController.getContacts);
 // POST /api/contacts -> Khách gửi liên hệ
 router.post('/', contactController.createContact);
 
-// DELETE /api/contacts/:id -> Xóa liên hệ (Admin)
+// POST /api/contacts/:id/restore -> Khôi phục liên hệ đã xóa mềm (Admin)
+router.post('/:id/restore', contactController.restoreContact);
+
+// DELETE /api/contacts/:id/hard -> Xóa vĩnh viễn liên hệ (Admin)
+router.delete('/:id/hard', contactController.hardDeleteContact);
+
+// DELETE /api/contacts/:id -> Xóa mềm liên hệ (Admin)
 router.delete('/:id', contactController.deleteContact);
 
 module.exports = router;

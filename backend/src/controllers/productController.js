@@ -58,34 +58,34 @@ exports.createProduct = async (req, res) => {
             });
         }
 
-        const result = await Product.create({ 
-            name, 
-            price, 
+        const result = await Product.create({
+            name,
+            price,
             price_sale: price_sale ? Number(price_sale) : null,
-            image, 
-            description, 
-            category_id, 
-            brand_id, 
-            is_sale: Number(is_sale || 0), 
-            is_hot: Number(is_hot || 0), 
-            is_new: Number(is_new || 0) 
+            image,
+            description,
+            category_id,
+            brand_id,
+            is_sale: Number(is_sale || 0),
+            is_hot: Number(is_hot || 0),
+            is_new: Number(is_new || 0)
         });
 
         res.status(201).json({
             success: true,
             message: 'Thêm sản phẩm thành công',
-            data: { 
-                id: result.insertId, 
-                name, 
-                price, 
+            data: {
+                id: result.insertId,
+                name,
+                price,
                 price_sale: price_sale ? Number(price_sale) : null,
-                image, 
-                description, 
-                category_id, 
-                brand_id, 
-                is_sale: Number(is_sale || 0), 
-                is_hot: Number(is_hot || 0), 
-                is_new: Number(is_new || 0) 
+                image,
+                description,
+                category_id,
+                brand_id,
+                is_sale: Number(is_sale || 0),
+                is_hot: Number(is_hot || 0),
+                is_new: Number(is_new || 0)
             }
         });
     } catch (error) {
@@ -118,34 +118,34 @@ exports.updateProduct = async (req, res) => {
             });
         }
 
-        await Product.update(id, { 
-            name, 
-            price, 
+        await Product.update(id, {
+            name,
+            price,
             price_sale: price_sale ? Number(price_sale) : null,
-            image, 
-            description, 
-            category_id, 
-            brand_id, 
-            is_sale: Number(is_sale || 0), 
-            is_hot: Number(is_hot || 0), 
-            is_new: Number(is_new || 0) 
+            image,
+            description,
+            category_id,
+            brand_id,
+            is_sale: Number(is_sale || 0),
+            is_hot: Number(is_hot || 0),
+            is_new: Number(is_new || 0)
         });
 
         res.status(200).json({
             success: true,
             message: 'Cập nhật sản phẩm thành công',
-            data: { 
-                id: Number(id), 
-                name, 
-                price, 
+            data: {
+                id: Number(id),
+                name,
+                price,
                 price_sale: price_sale ? Number(price_sale) : null,
-                image, 
-                description, 
-                category_id, 
-                brand_id, 
-                is_sale: Number(is_sale || 0), 
-                is_hot: Number(is_hot || 0), 
-                is_new: Number(is_new || 0) 
+                image,
+                description,
+                category_id,
+                brand_id,
+                is_sale: Number(is_sale || 0),
+                is_hot: Number(is_hot || 0),
+                is_new: Number(is_new || 0)
             }
         });
     } catch (error) {

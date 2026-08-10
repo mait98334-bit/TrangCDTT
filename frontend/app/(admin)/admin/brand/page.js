@@ -7,6 +7,7 @@ export default function AdminBrandPage() {
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [activeTab, setActiveTab] = useState('active'); // 'active' hoặc 'trash'
+    const [currentPage, setCurrentPage] = useState(1);
 
     // Modal state
     const [showModal, setShowModal] = useState(false);
@@ -162,6 +163,13 @@ export default function AdminBrandPage() {
 
     const filteredBrands = brands.filter(b => activeTab === 'active' ? !b.is_deleted : b.is_deleted);
 
+    // Phân trang
+    const itemsPerPage = 8;
+    const totalPages = Math.ceil(filteredBrands.length / itemsPerPage);
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentBrands = filteredBrands.slice(indexOfFirstItem, indexOfLastItem);
+
     return (
         <div className="p-8 max-w-7xl mx-auto">
             {/* Header */}
@@ -181,7 +189,7 @@ export default function AdminBrandPage() {
             {/* Tab điều hướng */}
             <div className="flex gap-4 border-b border-gray-200 mb-6 text-sm">
                 <button
-                    onClick={() => setActiveTab('active')}
+                    onClick={() => { setActiveTab('active'); setCurrentPage(1); }}
                     className={`pb-3 font-semibold px-2 cursor-pointer transition-all border-b-2 ${
                         activeTab === 'active'
                             ? 'border-indigo-600 text-indigo-600'
@@ -191,7 +199,7 @@ export default function AdminBrandPage() {
                     📦 Hoạt động ({brands.filter(b => !b.is_deleted).length})
                 </button>
                 <button
-                    onClick={() => setActiveTab('trash')}
+                    onClick={() => { setActiveTab('trash'); setCurrentPage(1); }}
                     className={`pb-3 font-semibold px-2 cursor-pointer transition-all border-b-2 ${
                         activeTab === 'trash'
                             ? 'border-rose-600 text-rose-600'
@@ -214,14 +222,14 @@ export default function AdminBrandPage() {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100 text-sm">
-                        {filteredBrands.length === 0 ? (
+                        {currentBrands.length === 0 ? (
                             <tr>
                                 <td colSpan="4" className="p-6 text-center text-gray-500">
                                     {activeTab === 'trash' ? 'Thùng rác trống.' : 'Chưa có thương hiệu nào.'}
                                 </td>
                             </tr>
                         ) : (
-                            filteredBrands.map((item) => (
+                            currentBrands.map((item) => (
                                 <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
                                     <td className="p-4 text-gray-500 font-medium">#{item.id}</td>
                                     <td className="p-4 font-bold text-amber-600">{item.name}</td>
@@ -266,6 +274,59 @@ export default function AdminBrandPage() {
                         )}
                     </tbody>
                 </table>
+            </div>
+
+            {/* Điều khiển phân trang */}
+            <div className="flex justify-between items-center bg-white px-6 py-4 rounded-2xl border border-gray-100 shadow-sm mt-4 text-sm font-medium">
+                <div className="text-gray-500">
+                    {filteredBrands.length === 0 ? (
+                        <span>Không có thương hiệu nào để hiển thị</span>
+                    ) : (
+                        <span>
+                            Hiển thị <span className="font-semibold text-gray-800">{indexOfFirstItem + 1}</span> -{' '}
+                            <span className="font-semibold text-gray-800">{Math.min(indexOfLastItem, filteredBrands.length)}</span> trên{' '}
+                            <span className="font-semibold text-gray-800">{filteredBrands.length}</span> thương hiệu
+                        </span>
+                    )}
+                </div>
+                <div className="flex items-center gap-1">
+                    <button
+                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                        disabled={currentPage === 1 || filteredBrands.length === 0}
+                        className="px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:hover:bg-transparent cursor-pointer"
+                    >
+                        Trang trước
+                    </button>
+                    {totalPages <= 1 ? (
+                        <button
+                            disabled
+                            className="w-8 h-8 rounded-lg font-bold text-xs bg-indigo-600 text-white flex items-center justify-center"
+                        >
+                            1
+                        </button>
+                    ) : (
+                        Array.from({ length: totalPages }, (_, idx) => (
+                            <button
+                                key={idx}
+                                onClick={() => setCurrentPage(idx + 1)}
+                                className={`w-8 h-8 rounded-lg font-bold text-xs transition-colors cursor-pointer flex items-center justify-center ${
+                                    currentPage === idx + 1
+                                        ? 'bg-indigo-600 text-white'
+                                        : 'border border-gray-200 text-gray-600 hover:bg-gray-50'
+                                }`}
+                            >
+                                {idx + 1}
+                            </button>
+                        ))
+                    )}
+                    <button
+                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                        disabled={currentPage === totalPages || filteredBrands.length === 0}
+                        className="px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:hover:bg-transparent cursor-pointer"
+                    >
+                        Trang sau
+                    </button>
+                </div>
             </div>
 
             {/* Modal Dialog */}

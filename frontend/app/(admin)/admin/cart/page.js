@@ -5,6 +5,7 @@ import { fetchApi } from '@/services/apiService';
 export default function AdminCartPage() {
     const [carts, setCarts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [currentPage, setCurrentPage] = useState(1);
 
     // Modal state
     const [showModal, setShowModal] = useState(false);
@@ -70,6 +71,13 @@ export default function AdminCartPage() {
 
     if (loading) return <div className="p-8 text-center text-gray-500 font-medium">Đang tải danh sách giỏ hàng...</div>;
 
+    // Phân trang
+    const itemsPerPage = 8;
+    const totalPages = Math.ceil(carts.length / itemsPerPage);
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentCarts = carts.slice(indexOfFirstItem, indexOfLastItem);
+
     return (
         <div className="p-8 max-w-7xl mx-auto">
             {/* Header */}
@@ -94,12 +102,12 @@ export default function AdminCartPage() {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100 text-sm">
-                        {carts.length === 0 ? (
+                        {currentCarts.length === 0 ? (
                             <tr>
                                 <td colSpan="6" className="p-6 text-center text-gray-500">Chưa có giỏ hàng hoạt động nào trong hệ thống.</td>
                             </tr>
                         ) : (
-                            carts.map((item) => (
+                            currentCarts.map((item) => (
                                 <tr key={item.cart_id} className="hover:bg-gray-50/50 transition-colors">
                                     <td className="p-4 text-gray-500 font-medium">#{item.cart_id}</td>
                                     <td className="p-4 font-bold text-gray-800">{item.user_name}</td>
@@ -129,6 +137,59 @@ export default function AdminCartPage() {
                         )}
                     </tbody>
                 </table>
+            </div>
+
+            {/* Điều khiển phân trang */}
+            <div className="flex justify-between items-center bg-white px-6 py-4 rounded-2xl border border-gray-100 shadow-sm mt-4 text-sm font-medium">
+                <div className="text-gray-500">
+                    {carts.length === 0 ? (
+                        <span>Không có giỏ hàng nào để hiển thị</span>
+                    ) : (
+                        <span>
+                            Hiển thị <span className="font-semibold text-gray-800">{indexOfFirstItem + 1}</span> -{' '}
+                            <span className="font-semibold text-gray-800">{Math.min(indexOfLastItem, carts.length)}</span> trên{' '}
+                            <span className="font-semibold text-gray-800">{carts.length}</span> giỏ hàng
+                        </span>
+                    )}
+                </div>
+                <div className="flex items-center gap-1">
+                    <button
+                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                        disabled={currentPage === 1 || carts.length === 0}
+                        className="px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:hover:bg-transparent cursor-pointer"
+                    >
+                        Trang trước
+                    </button>
+                    {totalPages <= 1 ? (
+                        <button
+                            disabled
+                            className="w-8 h-8 rounded-lg font-bold text-xs bg-indigo-600 text-white flex items-center justify-center"
+                        >
+                            1
+                        </button>
+                    ) : (
+                        Array.from({ length: totalPages }, (_, idx) => (
+                            <button
+                                key={idx}
+                                onClick={() => setCurrentPage(idx + 1)}
+                                className={`w-8 h-8 rounded-lg font-bold text-xs transition-colors cursor-pointer flex items-center justify-center ${
+                                    currentPage === idx + 1
+                                        ? 'bg-indigo-600 text-white'
+                                        : 'border border-gray-200 text-gray-600 hover:bg-gray-50'
+                                }`}
+                            >
+                                {idx + 1}
+                            </button>
+                        ))
+                    )}
+                    <button
+                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                        disabled={currentPage === totalPages || carts.length === 0}
+                        className="px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:hover:bg-transparent cursor-pointer"
+                    >
+                        Trang sau
+                    </button>
+                </div>
             </div>
 
             {/* Modal chi tiết giỏ hàng */}

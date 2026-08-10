@@ -5,6 +5,8 @@ import { fetchApi } from '@/services/apiService';
 export default function AdminContactPage() {
     const [contacts, setContacts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState('active'); // 'active' hoặc 'trash'
+    const [currentPage, setCurrentPage] = useState(1);
 
     // Modal state
     const [showModal, setShowModal] = useState(false);
@@ -12,7 +14,7 @@ export default function AdminContactPage() {
 
     const loadContacts = async () => {
         setLoading(true);
-        const res = await fetchApi('/contacts');
+        const res = await fetchApi('/contacts?admin=true');
         if (res.success) {
             setContacts(res.data);
         }
@@ -29,23 +31,62 @@ export default function AdminContactPage() {
         setShowModal(true);
     };
 
-    // Xóa liên hệ
+    // Xóa mềm liên hệ
     const handleDeleteContact = async (id) => {
-        if (!confirm('Bạn có chắc chắn muốn xóa tin nhắn liên hệ này? Thao tác này không thể hoàn tác.')) return;
+        if (!confirm('Bạn có chắc chắn muốn đưa tin nhắn liên hệ này vào thùng rác?')) return;
 
         const res = await fetchApi(`/contacts/${id}`, {
             method: 'DELETE'
         });
 
         if (res.success) {
-            alert('Xóa liên hệ thành công!');
+            alert('Đã chuyển liên hệ vào Thùng rác!');
             loadContacts();
         } else {
             alert(res.message || 'Xóa liên hệ thất bại!');
         }
     };
 
+    // Khôi phục liên hệ đã xóa mềm
+    const handleRestoreContact = async (id) => {
+        const res = await fetchApi(`/contacts/${id}/restore`, {
+            method: 'POST'
+        });
+
+        if (res.success) {
+            alert('Khôi phục liên hệ thành công!');
+            loadContacts();
+        } else {
+            alert(res.message || 'Khôi phục liên hệ thất bại!');
+        }
+    };
+
+    // Xóa vĩnh viễn liên hệ khỏi database
+    const handleHardDeleteContact = async (id) => {
+        if (!confirm('CẢNH BÁO: Bạn có chắc muốn xóa vĩnh viễn tin nhắn liên hệ này? Thao tác này sẽ xóa sạch bản ghi khỏi database và KHÔNG thể hoàn tác!')) return;
+
+        const res = await fetchApi(`/contacts/${id}/hard`, {
+            method: 'DELETE'
+        });
+
+        if (res.success) {
+            alert('Đã xóa vĩnh viễn liên hệ khỏi hệ thống!');
+            loadContacts();
+        } else {
+            alert(res.message || 'Xóa vĩnh viễn thất bại!');
+        }
+    };
+
     if (loading) return <div className="p-8 text-center text-gray-500 font-medium">Đang tải danh sách liên hệ...</div>;
+
+    const filteredContacts = contacts.filter(c => activeTab === 'active' ? !c.is_deleted : c.is_deleted);
+
+    // Phân trang
+    const itemsPerPage = 8;
+    const totalPages = Math.ceil(filteredContacts.length / itemsPerPage);
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentContacts = filteredContacts.slice(indexOfFirstItem, indexOfLastItem);
 
     return (
         <div className="p-8 max-w-7xl mx-auto">
@@ -55,6 +96,30 @@ export default function AdminContactPage() {
                     <h1 className="text-3xl font-bold text-gray-800">Quản lý Liên hệ</h1>
                     <p className="text-sm text-gray-500 mt-1">Danh sách ý kiến phản hồi, tin nhắn từ khách hàng gửi qua Storefront</p>
                 </div>
+            </div>
+
+            {/* Tab điều hướng */}
+            <div className="flex gap-4 border-b border-gray-200 mb-6 text-sm">
+                <button
+                    onClick={() => { setActiveTab('active'); setCurrentPage(1); }}
+                    className={`pb-3 font-semibold px-2 cursor-pointer transition-all border-b-2 ${
+                        activeTab === 'active'
+                            ? 'border-indigo-600 text-indigo-600'
+                            : 'border-transparent text-gray-500 hover:text-gray-700'
+                    }`}
+                >
+                    📦 Hoạt động ({contacts.filter(c => !c.is_deleted).length})
+                </button>
+                <button
+                    onClick={() => { setActiveTab('trash'); setCurrentPage(1); }}
+                    className={`pb-3 font-semibold px-2 cursor-pointer transition-all border-b-2 ${
+                        activeTab === 'trash'
+                            ? 'border-rose-600 text-rose-600'
+                            : 'border-transparent text-gray-500 hover:text-gray-700'
+                    }`}
+                >
+                    🗑️ Thùng rác ({contacts.filter(c => c.is_deleted).length})
+                </button>
             </div>
 
             {/* Bảng danh sách liên hệ */}
@@ -72,12 +137,14 @@ export default function AdminContactPage() {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100 text-sm">
-                        {contacts.length === 0 ? (
+                        {currentContacts.length === 0 ? (
                             <tr>
-                                <td colSpan="7" className="p-6 text-center text-gray-500">Chưa nhận được tin nhắn liên hệ nào.</td>
+                                <td colSpan="7" className="p-6 text-center text-gray-500">
+                                    {activeTab === 'trash' ? 'Thùng rác trống.' : 'Chưa nhận được tin nhắn liên hệ nào.'}
+                                </td>
                             </tr>
                         ) : (
-                            contacts.map((item) => (
+                            currentContacts.map((item) => (
                                 <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
                                     <td className="p-4 text-gray-500 font-medium">#{item.id}</td>
                                     <td className="p-4 font-bold text-gray-800">{item.name}</td>
@@ -89,18 +156,37 @@ export default function AdminContactPage() {
                                     </td>
                                     <td className="p-4 text-center whitespace-nowrap">
                                         <div className="flex items-center justify-center gap-1.5">
-                                            <button
-                                                onClick={() => handleOpenDetails(item)}
-                                                className="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 px-2.5 py-1.5 rounded-lg font-bold text-xs transition-colors cursor-pointer"
-                                            >
-                                                Chi tiết
-                                            </button>
-                                            <button
-                                                onClick={() => handleDeleteContact(item.id)}
-                                                className="bg-rose-50 hover:bg-rose-100 text-rose-600 px-2.5 py-1.5 rounded-lg font-bold text-xs transition-colors cursor-pointer"
-                                            >
-                                                Xóa
-                                            </button>
+                                            {activeTab === 'trash' ? (
+                                                <>
+                                                    <button
+                                                        onClick={() => handleRestoreContact(item.id)}
+                                                        className="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 px-2.5 py-1.5 rounded-lg font-bold text-xs transition-colors cursor-pointer"
+                                                    >
+                                                        Khôi phục
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleHardDeleteContact(item.id)}
+                                                        className="bg-rose-50 hover:bg-rose-100 text-rose-600 px-2.5 py-1.5 rounded-lg font-bold text-xs transition-colors cursor-pointer"
+                                                    >
+                                                        Xóa vĩnh viễn
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <button
+                                                        onClick={() => handleOpenDetails(item)}
+                                                        className="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 px-2.5 py-1.5 rounded-lg font-bold text-xs transition-colors cursor-pointer"
+                                                    >
+                                                        Chi tiết
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteContact(item.id)}
+                                                        className="bg-rose-50 hover:bg-rose-100 text-rose-600 px-2.5 py-1.5 rounded-lg font-bold text-xs transition-colors cursor-pointer"
+                                                    >
+                                                        Xóa
+                                                    </button>
+                                                </>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>
@@ -108,6 +194,59 @@ export default function AdminContactPage() {
                         )}
                     </tbody>
                 </table>
+            </div>
+
+            {/* Điều khiển phân trang */}
+            <div className="flex justify-between items-center bg-white px-6 py-4 rounded-2xl border border-gray-100 shadow-sm mt-4 text-sm font-medium">
+                <div className="text-gray-500">
+                    {filteredContacts.length === 0 ? (
+                        <span>Không có liên hệ nào để hiển thị</span>
+                    ) : (
+                        <span>
+                            Hiển thị <span className="font-semibold text-gray-800">{indexOfFirstItem + 1}</span> -{' '}
+                            <span className="font-semibold text-gray-800">{Math.min(indexOfLastItem, filteredContacts.length)}</span> trên{' '}
+                            <span className="font-semibold text-gray-800">{filteredContacts.length}</span> liên hệ
+                        </span>
+                    )}
+                </div>
+                <div className="flex items-center gap-1">
+                    <button
+                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                        disabled={currentPage === 1 || filteredContacts.length === 0}
+                        className="px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:hover:bg-transparent cursor-pointer"
+                    >
+                        Trang trước
+                    </button>
+                    {totalPages <= 1 ? (
+                        <button
+                            disabled
+                            className="w-8 h-8 rounded-lg font-bold text-xs bg-indigo-600 text-white flex items-center justify-center"
+                        >
+                            1
+                        </button>
+                    ) : (
+                        Array.from({ length: totalPages }, (_, idx) => (
+                            <button
+                                key={idx}
+                                onClick={() => setCurrentPage(idx + 1)}
+                                className={`w-8 h-8 rounded-lg font-bold text-xs transition-colors cursor-pointer flex items-center justify-center ${
+                                    currentPage === idx + 1
+                                        ? 'bg-indigo-600 text-white'
+                                        : 'border border-gray-200 text-gray-600 hover:bg-gray-50'
+                                }`}
+                            >
+                                {idx + 1}
+                            </button>
+                        ))
+                    )}
+                    <button
+                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                        disabled={currentPage === totalPages || filteredContacts.length === 0}
+                        className="px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:hover:bg-transparent cursor-pointer"
+                    >
+                        Trang sau
+                    </button>
+                </div>
             </div>
 
             {/* Modal Chi tiết tin nhắn liên hệ */}

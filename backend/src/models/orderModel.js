@@ -40,7 +40,13 @@ const Order = {
 
     // 3. Lấy chi tiết 1 đơn hàng kèm theo các sản phẩm bên trong nó
     getById: async (id) => {
-        const [orders] = await db.query('SELECT * FROM orders WHERE id = ?', [id]);
+        const [orders] = await db.query(
+            `SELECT o.*, u.email as user_email, u.name as user_registered_name 
+             FROM orders o 
+             LEFT JOIN users u ON o.user_id = u.id 
+             WHERE o.id = ?`,
+            [id]
+        );
         if (orders.length === 0) return null;
 
         const [details] = await db.query(

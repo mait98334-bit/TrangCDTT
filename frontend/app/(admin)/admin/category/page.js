@@ -7,6 +7,7 @@ export default function AdminCategoryPage() {
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [activeTab, setActiveTab] = useState('active'); // 'active' hoặc 'trash'
+    const [currentPage, setCurrentPage] = useState(1);
 
     // Modal state
     const [showModal, setShowModal] = useState(false);
@@ -163,6 +164,13 @@ export default function AdminCategoryPage() {
 
     const filteredCategories = categories.filter(c => activeTab === 'active' ? !c.is_deleted : c.is_deleted);
 
+    // Phân trang
+    const itemsPerPage = 8;
+    const totalPages = Math.ceil(filteredCategories.length / itemsPerPage);
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentCategories = filteredCategories.slice(indexOfFirstItem, indexOfLastItem);
+
     return (
         <div className="p-8 max-w-7xl mx-auto">
             {/* Header */}
@@ -182,7 +190,7 @@ export default function AdminCategoryPage() {
             {/* Tab điều hướng */}
             <div className="flex gap-4 border-b border-gray-200 mb-6 text-sm">
                 <button
-                    onClick={() => setActiveTab('active')}
+                    onClick={() => { setActiveTab('active'); setCurrentPage(1); }}
                     className={`pb-3 font-semibold px-2 cursor-pointer transition-all border-b-2 ${
                         activeTab === 'active'
                             ? 'border-indigo-600 text-indigo-600'
@@ -192,7 +200,7 @@ export default function AdminCategoryPage() {
                     📦 Hoạt động ({categories.filter(c => !c.is_deleted).length})
                 </button>
                 <button
-                    onClick={() => setActiveTab('trash')}
+                    onClick={() => { setActiveTab('trash'); setCurrentPage(1); }}
                     className={`pb-3 font-semibold px-2 cursor-pointer transition-all border-b-2 ${
                         activeTab === 'trash'
                             ? 'border-rose-600 text-rose-600'
@@ -215,14 +223,14 @@ export default function AdminCategoryPage() {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100 text-sm">
-                        {filteredCategories.length === 0 ? (
+                        {currentCategories.length === 0 ? (
                             <tr>
                                 <td colSpan="4" className="p-6 text-center text-gray-500">
                                     {activeTab === 'trash' ? 'Thùng rác trống.' : 'Chưa có danh mục nào.'}
                                 </td>
                             </tr>
                         ) : (
-                            filteredCategories.map((item) => (
+                            currentCategories.map((item) => (
                                 <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
                                     <td className="p-4 text-gray-500 font-medium">#{item.id}</td>
                                     <td className="p-4 font-bold text-indigo-600">{item.name}</td>
@@ -267,6 +275,59 @@ export default function AdminCategoryPage() {
                         )}
                     </tbody>
                 </table>
+            </div>
+
+            {/* Điều khiển phân trang */}
+            <div className="flex justify-between items-center bg-white px-6 py-4 rounded-2xl border border-gray-100 shadow-sm mt-4 text-sm font-medium">
+                <div className="text-gray-500">
+                    {filteredCategories.length === 0 ? (
+                        <span>Không có danh mục nào để hiển thị</span>
+                    ) : (
+                        <span>
+                            Hiển thị <span className="font-semibold text-gray-800">{indexOfFirstItem + 1}</span> -{' '}
+                            <span className="font-semibold text-gray-800">{Math.min(indexOfLastItem, filteredCategories.length)}</span> trên{' '}
+                            <span className="font-semibold text-gray-800">{filteredCategories.length}</span> danh mục
+                        </span>
+                    )}
+                </div>
+                <div className="flex items-center gap-1">
+                    <button
+                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                        disabled={currentPage === 1 || filteredCategories.length === 0}
+                        className="px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:hover:bg-transparent cursor-pointer"
+                    >
+                        Trang trước
+                    </button>
+                    {totalPages <= 1 ? (
+                        <button
+                            disabled
+                            className="w-8 h-8 rounded-lg font-bold text-xs bg-indigo-600 text-white flex items-center justify-center"
+                        >
+                            1
+                        </button>
+                    ) : (
+                        Array.from({ length: totalPages }, (_, idx) => (
+                            <button
+                                key={idx}
+                                onClick={() => setCurrentPage(idx + 1)}
+                                className={`w-8 h-8 rounded-lg font-bold text-xs transition-colors cursor-pointer flex items-center justify-center ${
+                                    currentPage === idx + 1
+                                        ? 'bg-indigo-600 text-white'
+                                        : 'border border-gray-200 text-gray-600 hover:bg-gray-50'
+                                }`}
+                            >
+                                {idx + 1}
+                            </button>
+                        ))
+                    )}
+                    <button
+                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                        disabled={currentPage === totalPages || filteredCategories.length === 0}
+                        className="px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:hover:bg-transparent cursor-pointer"
+                    >
+                        Trang sau
+                    </button>
+                </div>
             </div>
 
             {/* Modal Dialog */}

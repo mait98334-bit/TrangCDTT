@@ -8,6 +8,7 @@ export default function AdminProductPage() {
     const [brands, setBrands] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('active'); // 'active' hoặc 'trash'
+    const [currentPage, setCurrentPage] = useState(1);
     const [submitting, setSubmitting] = useState(false);
     const [uploadingFile, setUploadingFile] = useState(false);
 
@@ -396,6 +397,13 @@ export default function AdminProductPage() {
 
     const filteredProducts = products.filter(p => activeTab === 'active' ? !p.is_deleted : p.is_deleted);
 
+    // Phân trang
+    const itemsPerPage = 8;
+    const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentProducts = filteredProducts.slice(indexOfFirstItem, indexOfLastItem);
+
     return (
         <div className="p-8 max-w-7xl mx-auto">
             {/* Header trang sản phẩm */}
@@ -415,7 +423,7 @@ export default function AdminProductPage() {
             {/* Tab điều hướng: Hoạt động / Thùng rác */}
             <div className="flex gap-4 border-b border-gray-200 mb-6 text-sm">
                 <button
-                    onClick={() => setActiveTab('active')}
+                    onClick={() => { setActiveTab('active'); setCurrentPage(1); }}
                     className={`pb-3 font-semibold px-2 cursor-pointer transition-all border-b-2 ${
                         activeTab === 'active'
                             ? 'border-indigo-600 text-indigo-600'
@@ -425,7 +433,7 @@ export default function AdminProductPage() {
                     📦 Đang bán ({products.filter(p => !p.is_deleted).length})
                 </button>
                 <button
-                    onClick={() => setActiveTab('trash')}
+                    onClick={() => { setActiveTab('trash'); setCurrentPage(1); }}
                     className={`pb-3 font-semibold px-2 cursor-pointer transition-all border-b-2 ${
                         activeTab === 'trash'
                             ? 'border-rose-600 text-rose-600'
@@ -451,14 +459,14 @@ export default function AdminProductPage() {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100 text-sm">
-                        {filteredProducts.length === 0 ? (
+                        {currentProducts.length === 0 ? (
                             <tr>
                                 <td colSpan="7" className="p-6 text-center text-gray-500">
                                     {activeTab === 'trash' ? 'Thùng rác trống.' : 'Chưa có sản phẩm nào trong cơ sở dữ liệu.'}
                                 </td>
                             </tr>
                         ) : (
-                            filteredProducts.map((item) => (
+                            currentProducts.map((item) => (
                                 <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
                                     <td className="p-4 text-gray-500 font-medium">#{item.id}</td>
                                     <td className="p-4">
@@ -559,6 +567,59 @@ export default function AdminProductPage() {
                         )}
                     </tbody>
                 </table>
+            </div>
+
+            {/* Điều khiển phân trang */}
+            <div className="flex justify-between items-center bg-white px-6 py-4 rounded-2xl border border-gray-100 shadow-sm mt-4 text-sm font-medium">
+                <div className="text-gray-500">
+                    {filteredProducts.length === 0 ? (
+                        <span>Không có sản phẩm nào để hiển thị</span>
+                    ) : (
+                        <span>
+                            Hiển thị <span className="font-semibold text-gray-800">{indexOfFirstItem + 1}</span> -{' '}
+                            <span className="font-semibold text-gray-800">{Math.min(indexOfLastItem, filteredProducts.length)}</span> trên{' '}
+                            <span className="font-semibold text-gray-800">{filteredProducts.length}</span> sản phẩm
+                        </span>
+                    )}
+                </div>
+                <div className="flex items-center gap-1">
+                    <button
+                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                        disabled={currentPage === 1 || filteredProducts.length === 0}
+                        className="px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:hover:bg-transparent cursor-pointer"
+                    >
+                        Trang trước
+                    </button>
+                    {totalPages <= 1 ? (
+                        <button
+                            disabled
+                            className="w-8 h-8 rounded-lg font-bold text-xs bg-indigo-600 text-white flex items-center justify-center"
+                        >
+                            1
+                        </button>
+                    ) : (
+                        Array.from({ length: totalPages }, (_, idx) => (
+                            <button
+                                key={idx}
+                                onClick={() => setCurrentPage(idx + 1)}
+                                className={`w-8 h-8 rounded-lg font-bold text-xs transition-colors cursor-pointer flex items-center justify-center ${
+                                    currentPage === idx + 1
+                                        ? 'bg-indigo-600 text-white'
+                                        : 'border border-gray-200 text-gray-600 hover:bg-gray-50'
+                                }`}
+                            >
+                                {idx + 1}
+                            </button>
+                        ))
+                    )}
+                    <button
+                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                        disabled={currentPage === totalPages || filteredProducts.length === 0}
+                        className="px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:hover:bg-transparent cursor-pointer"
+                    >
+                        Trang sau
+                    </button>
+                </div>
             </div>
 
             {/* Modal Dialog Thêm/Sửa sản phẩm chính */}
