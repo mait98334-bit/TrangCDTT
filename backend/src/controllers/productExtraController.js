@@ -32,6 +32,17 @@ exports.deleteVariant = async (req, res) => {
     }
 };
 
+exports.updateVariant = async (req, res) => {
+    try {
+        const { variantId } = req.params;
+        const { color, size, price, stock, image } = req.body;
+        await ProductExtra.updateVariant(variantId, { color, size, price, stock, image });
+        res.status(200).json({ success: true, message: 'Cập nhật biến thể thành công' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
 exports.addImage = async (req, res) => {
     try {
         const { productId } = req.params;

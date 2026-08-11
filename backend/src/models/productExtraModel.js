@@ -21,6 +21,14 @@ const ProductExtra = {
         const [result] = await db.query('DELETE FROM product_variants WHERE id = ?', [variantId]);
         return result;
     },
+    updateVariant: async (variantId, data) => {
+        const { color, size, price, stock, image } = data;
+        const [result] = await db.query(
+            'UPDATE product_variants SET color = ?, size = ?, price = ?, stock = ?, image = ? WHERE id = ?',
+            [color || null, size || null, price || null, stock || 0, image || null, variantId]
+        );
+        return result;
+    },
     addImage: async (productId, imageUrl) => {
         const [result] = await db.query(
             'INSERT INTO product_images (product_id, image_url) VALUES (?, ?)',

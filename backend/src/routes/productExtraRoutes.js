@@ -7,6 +7,7 @@ router.get('/:productId/extra', productExtraController.getDetails);
 
 // Biến thể
 router.post('/:productId/variants', productExtraController.addVariant);
+router.put('/variants/:variantId', productExtraController.updateVariant);
 router.delete('/variants/:variantId', productExtraController.deleteVariant);
 
 // Ảnh phụ
