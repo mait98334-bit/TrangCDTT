@@ -163,6 +163,7 @@ export default function AdminProductPage() {
       alert("Có lỗi xảy ra khi kết nối máy chủ để tải ảnh!");
     } finally {
       setUploadingFile(false);
+      e.target.value = "";
     }
   };
   // Xử lý Submit form sản phẩm chính (Thêm/Sửa)
@@ -352,6 +353,7 @@ export default function AdminProductPage() {
       alert("Lỗi tải ảnh lên máy chủ!");
     } finally {
       setUploadingExtraFile(false);
+      e.target.value = "";
     }
   };
   const handleAddExtraImageUrl = async (e) => {
@@ -448,12 +450,12 @@ export default function AdminProductPage() {
           return updated;
         });
         alert("Tải ảnh biến thể thành công!");
-      } else {
-        alert(data.message || "Tải ảnh thất bại!");
       }
     } catch (err) {
       console.error(err);
       alert("Lỗi khi upload ảnh biến thể!");
+    } finally {
+      e.target.value = "";
     }
   };
   const handleAddVariant = async (e) => {
@@ -656,12 +658,12 @@ export default function AdminProductPage() {
       if (data.success) {
         setEditingVariantData((prev) => ({ ...prev, image: data.url }));
         alert("Tải ảnh biến thể thành công!");
-      } else {
-        alert(data.message || "Tải ảnh thất bại!");
       }
     } catch (err) {
       console.error(err);
       alert("Lỗi khi upload ảnh biến thể!");
+    } finally {
+      e.target.value = "";
     }
   };
   const applyBulkEdit = async () => {
@@ -1158,6 +1160,7 @@ export default function AdminProductPage() {
                               type="file"
                               accept="image/*"
                               onChange={handleFileUpload}
+                              onClick={(e) => e.stopPropagation()}
                               className="hidden"
                             />
                           </label>
@@ -1287,6 +1290,7 @@ export default function AdminProductPage() {
                             type="file"
                             accept="image/*"
                             onChange={handleExtraImageUpload}
+                            onClick={(e) => e.stopPropagation()}
                             className="hidden"
                           />
                         </label>
@@ -1594,6 +1598,7 @@ export default function AdminProductPage() {
                                   onChange={(e) =>
                                     handleVariantImageUpload(e, index)
                                   }
+                                  onClick={(e) => e.stopPropagation()}
                                   className="hidden"
                                 />
                               </label>
@@ -1864,9 +1869,10 @@ export default function AdminProductPage() {
                                           type="file"
                                           accept="image/*"
                                           onChange={
-                                            handleEditingVariantImageUpload
-                                          }
-                                          className="hidden"
+                                             handleEditingVariantImageUpload
+                                           }
+                                           onClick={(e) => e.stopPropagation()}
+                                           className="hidden"
                                         />
                                       </label>
                                     )}
