@@ -15,7 +15,7 @@ export const UserService = {
         method: 'DELETE'
     }),
     restore: (id) => fetchApi(`/users/${id}/restore`, {
-        method: 'PUT'
+        method: 'POST'
     }),
     hardDelete: (id) => fetchApi(`/users/${id}/hard`, {
         method: 'DELETE'

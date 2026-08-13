@@ -1,8 +1,13 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { fetchApi } from '@/services/apiService';
+import { ProductService } from '@/services/productService';
+import { CategoryService } from '@/services/categoryService';
+import { BrandService } from '@/services/brandService';
+import { PostService } from '@/services/postService';
 import { getImageUrl } from '@/services/imageHelper';
+
+import { CartService } from '@/services/cartService';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,7 +28,7 @@ export default function HomePage() {
             image: "/uploads/slide_1.jpg",
             buttonText: "Mua Ngay Cực Hot",
             buttonLink: "/product?brand=1",
-            bgColor: "from-slate-950 via-indigo-955 to-slate-900"
+            bgColor: "from-slate-955 via-indigo-955 to-slate-900"
         },
         {
             id: 2,
@@ -66,14 +71,14 @@ export default function HomePage() {
         const loadHomeData = async () => {
             setLoading(true);
             const [prodRes, catRes, brandRes, postRes] = await Promise.all([
-                fetchApi('/products'),
-                fetchApi('/categories'),
-                fetchApi('/brands'),
-                fetchApi('/posts')
+                ProductService.getAll(),
+                CategoryService.getAll(),
+                BrandService.getAll(),
+                PostService.getAll()
             ]);
 
             if (prodRes.success) setProducts(prodRes.data); // Lấy toàn bộ sản phẩm để phân loại ở trang chủ
-            if (catRes.success) setCategories(catRes.data.slice(0, 6)); // Lấy các danh mục chính
+            if (catRes.success) setCategories(catRes.data); // Lấy toàn bộ danh mục
             if (brandRes.success) setBrands(brandRes.data);
             if (postRes.success) setPosts(postRes.data.slice(0, 3)); // Lấy 3 bài viết mới nhất
 
@@ -82,6 +87,30 @@ export default function HomePage() {
 
         loadHomeData();
     }, []);
+
+    // Xử lý thêm vào giỏ hàng từ nút nhanh
+    const handleAddToCart = async (productId) => {
+        const storedUser = localStorage.getItem('user');
+        if (!storedUser) {
+            alert('Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng!');
+            window.location.href = '/login';
+            return;
+        }
+
+        try {
+            const userObj = JSON.parse(storedUser);
+            const res = await CartService.add(userObj.id, Number(productId), 1);
+            if (res.success) {
+                window.dispatchEvent(new CustomEvent('cartToast', { detail: { message: 'Đã thêm sản phẩm vào giỏ hàng! 🛒' } }));
+                window.dispatchEvent(new Event('cartUpdate'));
+            } else {
+                alert(res.message || 'Thêm vào giỏ hàng thất bại!');
+            }
+        } catch (e) {
+            console.error('Lỗi add to cart:', e);
+            alert('Thao tác thất bại!');
+        }
+    };
 
     // Phân loại các nhóm sản phẩm ở trang chủ
     const saleProducts = products.filter(item => Number(item.is_sale) === 1).slice(0, 4);
@@ -127,25 +156,37 @@ export default function HomePage() {
                     <Link href={`/product/${item.id}`} className="font-extrabold text-slate-800 hover:text-indigo-600 transition-colors block text-sm line-clamp-2 h-10 leading-tight">
                         {item.name}
                     </Link>
+                    {/* Rating and Sold info */}
+                    <div className="flex items-center justify-between text-[11px] text-slate-400 font-bold pt-1.5">
+                        <span className="flex items-center gap-0.5 text-amber-500">★ {(item.average_rating > 0 ? Number(item.average_rating) : 5.0).toFixed(1)}</span>
+                        <span>Đã bán {item.total_sold || 0}</span>
+                    </div>
                 </div>
 
-                <div className="pt-4 flex items-baseline justify-between mt-auto w-full">
-                    <div className="flex items-baseline gap-2 flex-wrap">
+                <div className="pt-4 flex items-center justify-between mt-auto w-full border-t border-slate-50 mt-4 pt-3">
+                    <div className="flex flex-col">
                         {item.price_sale ? (
                             <>
-                                <span className="font-extrabold text-rose-600 text-sm sm:text-base whitespace-nowrap">
+                                <span className="font-extrabold text-indigo-600 text-[14px] sm:text-[15px] whitespace-nowrap">
                                     {Math.round(Number(item.price_sale)).toLocaleString('vi-VN')} đ
                                 </span>
-                                <span className="text-slate-400 line-through text-[11px] font-bold whitespace-nowrap">
+                                <span className="text-slate-400 line-through text-[10px] font-bold whitespace-nowrap">
                                     {Math.round(Number(item.price)).toLocaleString('vi-VN')} đ
                                 </span>
                             </>
                         ) : (
-                            <span className="font-extrabold text-rose-600 text-sm sm:text-base whitespace-nowrap">
+                            <span className="font-extrabold text-indigo-600 text-[14px] sm:text-[15px] whitespace-nowrap">
                                 {Math.round(Number(item.price)).toLocaleString('vi-VN')} đ
                             </span>
                         )}
                     </div>
+                    <button
+                        onClick={() => handleAddToCart(item.id)}
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white p-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center cursor-pointer shadow-sm shadow-indigo-100 hover:shadow-md"
+                        title="Thêm vào giỏ hàng"
+                    >
+                        🛒 +
+                    </button>
                 </div>
             </div>
         </div>
@@ -248,6 +289,42 @@ export default function HomePage() {
                 </div>
             </section>
 
+            {/* 1.5. Store Benefits / Policy Bar */}
+            <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-6">
+                <div className="bg-white border border-slate-100 rounded-3xl py-6 px-8 shadow-sm">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                        <div className="flex items-center gap-3.5">
+                            <span className="text-3xl">🚚</span>
+                            <div>
+                                <h4 className="font-extrabold text-slate-800 text-sm">Giao Hàng Miễn Phí</h4>
+                                <p className="text-slate-400 text-xs mt-0.5 font-medium">Đơn hàng toàn quốc từ 500K</p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-3.5">
+                            <span className="text-3xl">🔄</span>
+                            <div>
+                                <h4 className="font-extrabold text-slate-800 text-sm">30 Ngày Đổi Trả</h4>
+                                <p className="text-slate-400 text-xs mt-0.5 font-medium">Đổi trả cực kỳ nhanh chóng</p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-3.5">
+                            <span className="text-3xl">🛡️</span>
+                            <div>
+                                <h4 className="font-extrabold text-slate-800 text-sm">Chính Hãng 100%</h4>
+                                <p className="text-slate-400 text-xs mt-0.5 font-medium">Hoàn tiền x2 nếu phát hiện fake</p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-3.5">
+                            <span className="text-3xl">📞</span>
+                            <div>
+                                <h4 className="font-extrabold text-slate-800 text-sm">Hỗ Trợ Tận Tâm</h4>
+                                <p className="text-slate-400 text-xs mt-0.5 font-medium">Tổng đài hỗ trợ 24/7</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             {/* 2. Shop by Category Section */}
             <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center max-w-xl mx-auto mb-10">
@@ -255,7 +332,7 @@ export default function HomePage() {
                     <p className="text-slate-500 text-sm mt-2">Dễ dàng lựa chọn nhóm sản phẩm thời trang bạn yêu thích</p>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6">
+                <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-6">
                     {categories.map((cat, index) => {
                         const colors = [
                             'from-purple-500 to-indigo-600',
@@ -263,19 +340,76 @@ export default function HomePage() {
                             'from-blue-500 to-sky-600',
                             'from-teal-500 to-emerald-600',
                             'from-amber-500 to-orange-600',
-                            'from-cyan-500 to-blue-600'
+                            'from-cyan-500 to-blue-600',
+                            'from-indigo-500 to-purple-600',
+                            'from-rose-500 to-red-600',
+                            'from-emerald-500 to-teal-600'
                         ];
                         const selectColor = colors[index % colors.length];
 
+                        const getCategoryIcon = (name) => {
+                            if (!name) return '🛍️';
+                            const lower = name.toLowerCase();
+                            if (lower.includes('áo nam') || lower.includes('ao nam')) return '👕';
+                            if (lower.includes('quần nam') || lower.includes('quan nam')) return '🩳';
+                            if (lower.includes('áo khoác nam') || lower.includes('ao khoac nam')) return '🧥';
+                            if (lower.includes('áo nữ') || lower.includes('ao nu')) return '👚';
+                            if (lower.includes('quần nữ') || lower.includes('quan nu')) return '👖';
+                            if (lower.includes('áo khoác nữ') || lower.includes('ao khoac nu')) return '🧥';
+                            if (lower.includes('giày') || lower.includes('giay')) return '👟';
+                            if (lower.includes('bộ đồ') || lower.includes('bo do')) return '🏃‍♂️';
+                            if (lower.includes('phụ kiện') || lower.includes('phu kien')) return '🎒';
+                            return '🛍️';
+                        };
+
                         return (
                             <Link key={cat.id} href={`/product?category=${cat.id}`} className="group block text-center space-y-3">
-                                <div className={`w-20 h-20 mx-auto rounded-3xl bg-gradient-to-br ${selectColor} flex items-center justify-center text-white text-3xl font-black shadow-lg shadow-indigo-100/50 group-hover:scale-110 transition-transform duration-200`}>
-                                    {cat.name.charAt(0).toUpperCase()}
+                                <div className={`w-16 h-16 mx-auto rounded-3xl bg-gradient-to-br ${selectColor} flex items-center justify-center text-white text-2xl font-black shadow-lg shadow-indigo-100/50 group-hover:scale-110 transition-transform duration-200`}>
+                                    {getCategoryIcon(cat.name)}
                                 </div>
-                                <h3 className="font-bold text-slate-800 text-sm group-hover:text-indigo-600 transition-colors">{cat.name}</h3>
+                                <h3 className="font-bold text-slate-800 text-[11px] sm:text-xs group-hover:text-indigo-600 transition-colors line-clamp-1 leading-snug">{cat.name}</h3>
                             </Link>
                         );
                     })}
+                </div>
+            </section>
+
+            {/* 2.5. Promotional Campaign Banners */}
+            <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {/* Banner 1 */}
+                    <div className="relative h-64 rounded-3xl overflow-hidden shadow-md group">
+                        <img 
+                            src="https://images.unsplash.com/photo-1552346154-21d32810aba3?q=80&w=800&auto=format&fit=crop" 
+                            alt="Jordan Collection" 
+                            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-750"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-r from-slate-950/80 to-transparent z-10 flex flex-col justify-center p-8 text-white space-y-3">
+                            <span className="text-xs font-black text-amber-400 uppercase tracking-widest bg-amber-950/60 px-3 py-1 rounded-lg w-max font-sans">Jordan Retro 🏀</span>
+                            <h3 className="text-xl sm:text-2xl font-black leading-tight max-w-xs">Huyền Thoại Sân Đấu Jordan</h3>
+                            <p className="text-slate-350 text-xs max-w-xs leading-relaxed">Định hình lại phong cách bóng rổ đường phố cùng các thiết kế Air Jordan kinh điển.</p>
+                            <Link href="/product?brand=4" className="bg-white text-slate-900 hover:bg-slate-100 px-5 py-2.5 rounded-xl text-xs font-bold w-max shadow transition-all hover:scale-105">
+                                Khám Phá Ngay
+                            </Link>
+                        </div>
+                    </div>
+
+                    {/* Banner 2 */}
+                    <div className="relative h-64 rounded-3xl overflow-hidden shadow-md group">
+                        <img 
+                            src="https://images.unsplash.com/photo-1539109136881-3be0616acf4b?q=80&w=800&auto=format&fit=crop" 
+                            alt="Balenciaga Campaign" 
+                            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-750"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-r from-slate-950/80 to-transparent z-10 flex flex-col justify-center p-8 text-white space-y-3">
+                            <span className="text-xs font-black text-rose-400 uppercase tracking-widest bg-rose-950/60 px-3 py-1 rounded-lg w-max">Balenciaga Luxury ✨</span>
+                            <h3 className="text-xl sm:text-2xl font-black leading-tight max-w-xs">Đột Phá Bản Thân Cùng Balenciaga</h3>
+                            <p className="text-slate-350 text-xs max-w-xs leading-relaxed">Khẳng định phong cách thời trang phi giới tính độc bản cùng các sản phẩm cao cấp.</p>
+                            <Link href="/product?brand=5" className="bg-white text-slate-900 hover:bg-slate-100 px-5 py-2.5 rounded-xl text-xs font-bold w-max shadow transition-all hover:scale-105">
+                                Xem Bộ Sưu Tập
+                            </Link>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -342,6 +476,28 @@ export default function HomePage() {
                 </div>
             </section>
 
+            {/* 3.5. Store Milestones / Stats */}
+            <section className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white rounded-3xl py-12 px-6 max-w-7xl mx-auto shadow-xl my-6">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+                    <div className="space-y-1">
+                        <span className="block text-3xl sm:text-4xl font-black text-indigo-400">2.000+</span>
+                        <span className="block text-slate-300 text-xs font-bold uppercase tracking-wider">Đơn hàng hoàn tất</span>
+                    </div>
+                    <div className="space-y-1">
+                        <span className="block text-3xl sm:text-4xl font-black text-indigo-400">6+</span>
+                        <span className="block text-slate-300 text-xs font-bold uppercase tracking-wider">Thương hiệu phân phối</span>
+                    </div>
+                    <div className="space-y-1">
+                        <span className="block text-3xl sm:text-4xl font-black text-indigo-400">3+</span>
+                        <span className="block text-slate-300 text-xs font-bold uppercase tracking-wider">Chi nhánh toàn quốc</span>
+                    </div>
+                    <div className="space-y-1">
+                        <span className="block text-3xl sm:text-4xl font-black text-indigo-400">100%</span>
+                        <span className="block text-slate-300 text-xs font-bold uppercase tracking-wider">Chính hãng & Uy tín</span>
+                    </div>
+                </div>
+            </section>
+
             {/* 4. Latest News Section */}
             <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-end mb-10 border-b border-slate-100 pb-4">
@@ -391,6 +547,71 @@ export default function HomePage() {
                         ))
                     )}
                 </div>
+            </section>
+
+            {/* 4.5. Thương Hiệu Nổi Bật */}
+            <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="text-center max-w-xl mx-auto mb-10">
+                    <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Thương Hiệu Nổi Bật</h2>
+                    <p className="text-slate-500 text-sm mt-2 font-medium">Đối tác cung cấp trang phục thể thao chính hãng</p>
+                </div>
+                
+                <div className="grid grid-cols-3 sm:grid-cols-6 gap-6">
+                    {brands.map((b) => (
+                        <Link 
+                            key={b.id} 
+                            href={`/product?brand=${b.id}`} 
+                            className="bg-white border border-slate-100 hover:border-indigo-200 hover:shadow-lg rounded-2xl p-5 flex flex-col items-center justify-center gap-2 transition-all group cursor-pointer"
+                        >
+                            <div className="h-10 w-full flex items-center justify-center relative">
+                                {b.image ? (
+                                    <img 
+                                        src={getImageUrl(b.image)} 
+                                        alt={b.name} 
+                                        className="h-full max-w-[80%] object-contain filter grayscale group-hover:grayscale-0 transition-all duration-300"
+                                        onError={(e) => {
+                                            e.target.style.display = 'none';
+                                            e.target.nextSibling.style.display = 'flex';
+                                        }}
+                                    />
+                                ) : null}
+                                <span className="hidden text-sm font-black text-slate-700 tracking-wider group-hover:text-indigo-600 transition-colors uppercase">
+                                    {b.name}
+                                </span>
+                            </div>
+                            <span className="text-[10px] font-bold text-slate-400 group-hover:text-indigo-600 transition-colors">{b.name}</span>
+                        </Link>
+                    ))}
+                </div>
+            </section>
+
+            {/* 5. Newsletter Subscription */}
+            <section className="bg-white border border-slate-100 rounded-3xl py-10 px-6 sm:px-12 max-w-7xl mx-auto text-center space-y-6 shadow-sm my-6">
+                <div className="max-w-xl mx-auto space-y-2">
+                    <h3 className="text-xl sm:text-2xl font-black text-slate-800">Đăng Ký Nhận Bản Tin Ưu Đãi</h3>
+                    <p className="text-slate-400 text-xs leading-relaxed font-medium">Nhận ngay mã giảm giá 10% cho đơn hàng đầu tiên và cập nhật sớm nhất các ưu đãi từ TRANG STORE.</p>
+                </div>
+                <form 
+                    onSubmit={(e) => {
+                        e.preventDefault();
+                        window.dispatchEvent(new CustomEvent('cartToast', { detail: { message: 'Đăng ký nhận tin thành công! Ưu đãi đã gửi qua email 📧' } }));
+                        e.target.reset();
+                    }}
+                    className="max-w-md mx-auto flex gap-3"
+                >
+                    <input 
+                        type="email" 
+                        required
+                        placeholder="Nhập địa chỉ email của bạn..." 
+                        className="flex-1 px-4 py-3 border border-slate-200 rounded-2xl text-xs sm:text-sm focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
+                    />
+                    <button 
+                        type="submit" 
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-3 rounded-2xl text-xs sm:text-sm transition-all shadow-md shadow-indigo-100 cursor-pointer"
+                    >
+                        Đăng Ký
+                    </button>
+                </form>
             </section>
         </div>
     );

@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { fetchApi } from '@/services/apiService';
+import { CartService } from '@/services/cartService';
 import { getImageUrl } from '@/services/imageHelper';
 
 export default function AdminCartPage() {
@@ -19,7 +19,7 @@ export default function AdminCartPage() {
 
     const loadCarts = async () => {
         setLoading(true);
-        const res = await fetchApi('/carts');
+        const res = await CartService.getAllAdmin();
         if (res.success) {
             setCarts(res.data);
         }
@@ -40,7 +40,7 @@ export default function AdminCartPage() {
         });
         setShowModal(true);
 
-        const res = await fetchApi(`/carts/details/${cartObj.cart_id}`);
+        const res = await CartService.getDetailsAdmin(cartObj.cart_id);
         setLoadingDetails(false);
 
         if (res.success) {
@@ -58,9 +58,7 @@ export default function AdminCartPage() {
     const handleClearCart = async (cartId) => {
         if (!confirm('Bạn có chắc chắn muốn dọn sạch giỏ hàng này? Tất cả sản phẩm đang chờ mua của khách hàng này sẽ bị xóa.')) return;
 
-        const res = await fetchApi(`/carts/${cartId}`, {
-            method: 'DELETE'
-        });
+        const res = await CartService.clearAdmin(cartId);
 
         if (res.success) {
             alert('Dọn sạch giỏ hàng thành công!');

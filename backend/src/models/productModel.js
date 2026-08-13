@@ -6,7 +6,8 @@ const Product = {
         const whereClause = includeDeleted ? '' : 'WHERE p.is_deleted = 0 OR p.is_deleted IS NULL';
         const [rows] = await db.query(
             `SELECT p.*, c.name as category_name, b.name as brand_name,
-                    COALESCE((SELECT SUM(od.quantity) FROM order_details od WHERE od.product_id = p.id), 0) as total_sold
+                    COALESCE((SELECT SUM(od.quantity) FROM order_details od WHERE od.product_id = p.id), 0) as total_sold,
+                    COALESCE((SELECT AVG(r.rating) FROM reviews r WHERE r.product_id = p.id AND (r.is_deleted = 0 OR r.is_deleted IS NULL)), 0) as average_rating
              FROM products p 
              LEFT JOIN categories c ON p.category_id = c.id 
              LEFT JOIN brands b ON p.brand_id = b.id
@@ -17,11 +18,12 @@ const Product = {
             const price = Number(prod.price || 0);
             const priceSale = prod.price_sale ? Number(prod.price_sale) : null;
             const totalSold = Number(prod.total_sold || 0);
+            const averageRating = Number(prod.average_rating || 0);
             let isHot = Number(prod.is_hot || 0);
             if (totalSold > 5 || (priceSale !== null && priceSale <= price * 0.5)) {
                 isHot = 1;
             }
-            return { ...prod, is_hot: isHot };
+            return { ...prod, is_hot: isHot, average_rating: averageRating };
         });
     },
 
@@ -32,7 +34,8 @@ const Product = {
             : 'WHERE p.id = ? AND (p.is_deleted = 0 OR p.is_deleted IS NULL)';
         const [rows] = await db.query(
             `SELECT p.*, c.name as category_name, b.name as brand_name,
-                    COALESCE((SELECT SUM(od.quantity) FROM order_details od WHERE od.product_id = p.id), 0) as total_sold
+                    COALESCE((SELECT SUM(od.quantity) FROM order_details od WHERE od.product_id = p.id), 0) as total_sold,
+                    COALESCE((SELECT AVG(r.rating) FROM reviews r WHERE r.product_id = p.id AND (r.is_deleted = 0 OR r.is_deleted IS NULL)), 0) as average_rating
              FROM products p 
              LEFT JOIN categories c ON p.category_id = c.id 
              LEFT JOIN brands b ON p.brand_id = b.id
@@ -44,11 +47,12 @@ const Product = {
         const price = Number(prod.price || 0);
         const priceSale = prod.price_sale ? Number(prod.price_sale) : null;
         const totalSold = Number(prod.total_sold || 0);
+        const averageRating = Number(prod.average_rating || 0);
         let isHot = Number(prod.is_hot || 0);
         if (totalSold > 5 || (priceSale !== null && priceSale <= price * 0.5)) {
             isHot = 1;
         }
-        return { ...prod, is_hot: isHot };
+        return { ...prod, is_hot: isHot, average_rating: averageRating };
     },
 
     // Thêm sản phẩm mới (dùng cho trang Admin)

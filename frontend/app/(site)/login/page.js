@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { fetchApi } from '@/services/apiService';
+import { AuthService } from '@/services/authService';
 
 export default function LoginPage() {
     const [isLogin, setIsLogin] = useState(true); // true: form đăng nhập, false: form đăng ký
@@ -15,10 +15,7 @@ export default function LoginPage() {
 
         if (isLogin) {
             // Xử lý Đăng nhập
-            const res = await fetchApi('/auth/login', {
-                method: 'POST',
-                body: JSON.stringify({ email: formData.email, password: formData.password })
-            });
+            const res = await AuthService.login(formData.email, formData.password);
 
             if (res.success) {
                 // Lưu thông tin user vào localStorage để quản lý phân quyền
@@ -35,10 +32,7 @@ export default function LoginPage() {
             }
         } else {
             // Xử lý Đăng ký
-            const res = await fetchApi('/auth/register', {
-                method: 'POST',
-                body: JSON.stringify(formData)
-            });
+            const res = await AuthService.register(formData);
 
             if (res.success) {
                 alert('Đăng ký thành công! Vui lòng đăng nhập.');

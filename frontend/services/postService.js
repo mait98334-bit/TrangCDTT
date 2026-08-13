@@ -16,7 +16,7 @@ export const PostService = {
         method: 'DELETE'
     }),
     restore: (id) => fetchApi(`/posts/${id}/restore`, {
-        method: 'PUT'
+        method: 'POST'
     }),
     hardDelete: (id) => fetchApi(`/posts/${id}/hard`, {
         method: 'DELETE'

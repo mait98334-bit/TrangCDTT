@@ -2,18 +2,29 @@ import { fetchApi } from './apiService';
 
 export const CartService = {
     get: () => fetchApi('/carts'),
-    add: (variantId, quantity) => fetchApi('/carts/add', {
+    add: (userId, productId, quantity, variantId = null) => fetchApi('/carts/add', {
         method: 'POST',
-        body: JSON.stringify({ variant_id: variantId, quantity })
+        body: JSON.stringify({ userId, productId, quantity, variantId })
     }),
-    update: (itemId, quantity) => fetchApi(`/carts/update/${itemId}`, {
-        method: 'PUT',
-        body: JSON.stringify({ quantity })
-    }),
-    remove: (itemId) => fetchApi(`/carts/remove/${itemId}`, {
+    getByUserId: (userId) => fetchApi(`/carts/${userId}`),
+    update: (itemId, quantity, variantId = null) => {
+        const body = {};
+        if (quantity !== undefined) body.quantity = quantity;
+        if (variantId !== null) body.variantId = variantId;
+        return fetchApi(`/carts/item/${itemId}`, {
+            method: 'PUT',
+            body: JSON.stringify(body)
+        });
+    },
+    removeItem: (itemId) => fetchApi(`/carts/item/${itemId}`, {
         method: 'DELETE'
     }),
-    clear: () => fetchApi('/carts/clear', {
+    clear: (cartId) => fetchApi(`/carts/${cartId}`, {
+        method: 'DELETE'
+    }),
+    getAllAdmin: () => fetchApi('/carts'),
+    getDetailsAdmin: (cartId) => fetchApi(`/carts/details/${cartId}`),
+    clearAdmin: (cartId) => fetchApi(`/carts/${cartId}`, {
         method: 'DELETE'
     })
 };

@@ -29,9 +29,14 @@ const Cart = {
         }
 
         const [items] = await db.query(
-            `SELECT ci.*, p.name, p.price, p.image 
+            `SELECT ci.*, p.name, 
+                    COALESCE(pv.price, p.price) as price, 
+                    p.price_sale, 
+                    COALESCE(pv.image, p.image) as image,
+                    pv.color, pv.size
              FROM cart_items ci 
              JOIN products p ON ci.product_id = p.id 
+             LEFT JOIN product_variants pv ON ci.variant_id = pv.id
              WHERE ci.cart_id = ?
              ORDER BY ci.id ASC`,
             [cart.id]
@@ -43,9 +48,14 @@ const Cart = {
     // Lấy chi tiết giỏ hàng theo Cart ID (Admin xem)
     getByCartId: async (cartId) => {
         const [items] = await db.query(
-            `SELECT ci.*, p.name, p.price, p.image 
+            `SELECT ci.*, p.name, 
+                    COALESCE(pv.price, p.price) as price, 
+                    p.price_sale, 
+                    COALESCE(pv.image, p.image) as image,
+                    pv.color, pv.size
              FROM cart_items ci 
              JOIN products p ON ci.product_id = p.id 
+             LEFT JOIN product_variants pv ON ci.variant_id = pv.id
              WHERE ci.cart_id = ?
              ORDER BY ci.id ASC`,
             [cartId]
@@ -53,12 +63,24 @@ const Cart = {
         return items;
     },
 
-    addItem: async (userId, productId, quantity) => {
+    addItem: async (userId, productId, quantity, variantId = null) => {
         const { cartId } = await Cart.getByUserId(userId);
 
+        let vId = variantId;
+        // Tự động chọn biến thể đầu tiên nếu không truyền variantId nhưng sản phẩm có biến thể
+        if (!vId) {
+            const [variants] = await db.query(
+                'SELECT id FROM product_variants WHERE product_id = ? ORDER BY id ASC LIMIT 1',
+                [productId]
+            );
+            if (variants.length > 0) {
+                vId = variants[0].id;
+            }
+        }
+
         const [existing] = await db.query(
-            'SELECT * FROM cart_items WHERE cart_id = ? AND product_id = ?',
-            [cartId, productId]
+            'SELECT * FROM cart_items WHERE cart_id = ? AND product_id = ? AND (variant_id = ? OR (variant_id IS NULL AND ? IS NULL))',
+            [cartId, productId, vId, vId]
         );
 
         if (existing.length > 0) {
@@ -66,8 +88,8 @@ const Cart = {
             await db.query('UPDATE cart_items SET quantity = ? WHERE id = ?', [newQty, existing[0].id]);
         } else {
             await db.query(
-                'INSERT INTO cart_items (cart_id, product_id, quantity) VALUES (?, ?, ?)',
-                [cartId, productId, quantity]
+                'INSERT INTO cart_items (cart_id, product_id, variant_id, quantity) VALUES (?, ?, ?, ?)',
+                [cartId, productId, vId, quantity]
             );
         }
         return { success: true };
@@ -75,6 +97,23 @@ const Cart = {
 
     removeItem: async (itemId) => {
         await db.query('DELETE FROM cart_items WHERE id = ?', [itemId]);
+        return { success: true };
+    },
+
+    updateItemQuantity: async (itemId, quantity) => {
+        await db.query('UPDATE cart_items SET quantity = ? WHERE id = ?', [quantity, itemId]);
+        return { success: true };
+    },
+
+    updateCartItem: async (itemId, data) => {
+        const fields = [];
+        const values = [];
+        for (const [key, value] of Object.entries(data)) {
+            fields.push(`${key} = ?`);
+            values.push(value);
+        }
+        values.push(itemId);
+        await db.query(`UPDATE cart_items SET ${fields.join(', ')} WHERE id = ?`, values);
         return { success: true };
     },
 

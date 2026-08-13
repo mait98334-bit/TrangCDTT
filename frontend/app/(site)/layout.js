@@ -2,43 +2,88 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import '@/app/globals.css';
-import { fetchApi } from '@/services/apiService';
+import { CategoryService } from '@/services/categoryService';
+import { BrandService } from '@/services/brandService';
+import { CartService } from '@/services/cartService';
 
 export default function SiteLayout({ children }) {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [user, setUser] = useState(null);
     const [categories, setCategories] = useState([]);
     const [brands, setBrands] = useState([]);
+    const [cartCount, setCartCount] = useState(0);
+    const [toast, setToast] = useState({ show: false, message: '' });
 
     useEffect(() => {
+        let currentUser = null;
         const storedUser = localStorage.getItem('user');
         if (storedUser) {
             try {
-                setUser(JSON.parse(storedUser));
+                currentUser = JSON.parse(storedUser);
+                setUser(currentUser);
             } catch (e) {
                 console.error('Lỗi parse user:', e);
             }
         }
 
-        // Fetch categories and brands for mega menu
+        // Fetch categories, brands, and cart count
         const loadNavData = async () => {
-            const [catRes, brandRes] = await Promise.all([
-                fetchApi('/categories'),
-                fetchApi('/brands')
-            ]);
+            const promises = [
+                CategoryService.getAll(),
+                BrandService.getAll()
+            ];
+            if (currentUser) {
+                promises.push(CartService.getByUserId(currentUser.id));
+            }
+            const [catRes, brandRes, cartRes] = await Promise.all(promises);
             if (catRes.success) setCategories(catRes.data);
             if (brandRes.success) setBrands(brandRes.data);
+            if (cartRes && cartRes.success) {
+                const totalQty = cartRes.data.items.reduce((sum, item) => sum + item.quantity, 0);
+                setCartCount(totalQty);
+            }
         };
+
         loadNavData();
+
+        // Listen for client cart update event
+        const updateCartBadge = async () => {
+            const userStr = localStorage.getItem('user');
+            if (userStr) {
+                try {
+                    const parsed = JSON.parse(userStr);
+                    const cartRes = await CartService.getByUserId(parsed.id);
+                    if (cartRes.success) {
+                        const totalQty = cartRes.data.items.reduce((sum, item) => sum + item.quantity, 0);
+                        setCartCount(totalQty);
+                    }
+                } catch (e) {
+                    console.error(e);
+                }
+            } else {
+                setCartCount(0);
+            }
+        };
+
+        const showCartToast = (e) => {
+            setToast({ show: true, message: e.detail?.message || 'Đã thêm sản phẩm vào giỏ hàng! 🛒' });
+            setTimeout(() => {
+                setToast(prev => ({ ...prev, show: false }));
+            }, 2500);
+        };
+
+        window.addEventListener('cartUpdate', updateCartBadge);
+        window.addEventListener('cartToast', showCartToast);
+        return () => {
+            window.removeEventListener('cartUpdate', updateCartBadge);
+            window.removeEventListener('cartToast', showCartToast);
+        };
     }, []);
 
     const handleLogout = () => {
-        if (confirm('Bạn có chắc chắn muốn đăng xuất?')) {
-            localStorage.removeItem('user');
-            setUser(null);
-            alert('Đăng xuất thành công!');
-            window.location.href = '/';
-        }
+        localStorage.removeItem('user');
+        setUser(null);
+        window.location.href = '/';
     };
 
     return (
@@ -151,6 +196,21 @@ export default function SiteLayout({ children }) {
 
                         {/* Right Actions */}
                         <div className="flex items-center gap-4">
+                            {/* Shopping Cart Icon with Badge */}
+                            {user && (
+                                <Link 
+                                    href="/cart" 
+                                    className="relative p-2.5 bg-slate-100 hover:bg-indigo-50 text-slate-600 hover:text-indigo-600 rounded-xl transition-all flex items-center justify-center cursor-pointer"
+                                >
+                                    <span className="text-xl">🛒</span>
+                                    {cartCount > 0 && (
+                                        <span className="absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-md animate-pulse">
+                                            {cartCount}
+                                        </span>
+                                    )}
+                                </Link>
+                            )}
+
                             {/* Admin Shortcut link (Chỉ hiển thị cho admin) */}
                             {user && (user.role === 'admin' || user.email?.includes('admin')) && (
                                 <Link href="/admin" className="hidden sm:inline-flex items-center text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-2 rounded-xl transition-all cursor-pointer">
@@ -302,6 +362,14 @@ export default function SiteLayout({ children }) {
                     </div>
                 </div>
             </footer>
+
+            {/* Custom Global Toast Notification */}
+            {toast.show && (
+                <div className="fixed bottom-5 right-5 z-[9999] bg-emerald-50 border border-emerald-150 text-emerald-800 px-4 py-3 rounded-2xl shadow-xl font-bold text-xs transition-all transform animate-in slide-in-from-bottom-5 duration-300 flex items-center gap-2">
+                    <span>✅</span>
+                    <span>{toast.message}</span>
+                </div>
+            )}
         </div>
     );
 }

@@ -1,0 +1,115 @@
+Nhật ký Hoàn thành Tích hợp Giỏ hàng, Cập nhật giao diện & Thanh toán VNPAY Sandbox
+Các công việc đã thực hiện
+1. Nâng cấp API Backend (backend/)
+[MODIFY] 
+cartModel.js
+:
+Lấy thêm cột p.price_sale trong hàm getByUserId và getByCartId để hỗ trợ tính giá khuyến mãi nếu có.
+Thêm phương thức updateItemQuantity(itemId, quantity) cập nhật số lượng sản phẩm trực tiếp vào CSDL.
+Hỗ trợ truyền variantId vào CSDL trong hàm addItem và tự động chọn biến thể đầu tiên của sản phẩm làm mặc định nếu không truyền từ trang chủ.
+[MODIFY] 
+cartController.js
+: Thêm hàm updateCartItem để cập nhật số lượng sản phẩm của khách hàng.
+[MODIFY] 
+cartRoutes.js
+: Thêm endpoint PUT /api/carts/item/:itemId cho việc thay đổi số lượng.
+[NEW] 
+paymentRoutes.js
+:
+Viết thuật toán mã hóa chữ ký SHA-512 và cấu trúc tham số theo chuẩn VNPAY 2.1.0 để giao tiếp với VNPAY Sandbox.
+Thiết lập endpoint /create_payment_url để tạo link chuyển hướng và nhận callback tại /vnpay_return để cập nhật trạng thái đơn hàng thành Đã thanh toán trên database.
+[MODIFY] 
+server.js
+: Đăng ký tuyến thanh toán mới /api/payment.
+2. Nâng cấp Frontend Service (frontend/services/)
+[MODIFY] 
+cartService.js
+:
+Cập nhật hàm update để gọi API PUT /api/carts/item/:itemId.
+Cập nhật hàm removeItem gọi API DELETE /api/carts/item/:itemId.
+Thêm hàm getByUserId lấy thông tin chi tiết giỏ hàng của user.
+[MODIFY] 
+orderService.js
+: Thêm phương thức create để gọi API đặt hàng (POST /api/orders).
+3. Giao diện Frontend Site (frontend/app/(site)/)
+[MODIFY] 
+layout.js
+:
+Thêm biểu tượng Giỏ hàng (🛒) kèm theo số lượng Badge hiển thị động dựa trên số sản phẩm có trong giỏ.
+Tích hợp Toast thông báo nổi toàn cục (cartToast) giúp thông báo trạng thái thêm vào giỏ hàng trực quan mà không bị chặn màn hình bởi alert() của trình duyệt.
+[MODIFY] 
+page.js (Trang chủ)
+:
+Thiết kế lại lưới danh mục (9 cột) tích hợp icon emoji sinh động, thanh cam kết chất lượng, banner quảng cáo Jordan và Balenciaga kết nối link động tới trang lọc thương hiệu.
+Thêm số liệu thống kê thực tế về cửa hàng.
+[MODIFY] 
+cart/page.js (Trang Giỏ hàng & Thanh toán)
+:
+Hiển thị danh sách sản phẩm trong giỏ với các nút tăng/giảm số lượng và nút xóa.
+Hỗ trợ đổi phân loại Màu sắc / Kích cỡ trực tiếp từ giỏ hàng.
+Khi chọn phương thức thanh toán QR Code (VNPAY) và bấm đặt hàng, trang sẽ tự động chuyển hướng sang cổng thanh toán VNPAY Sandbox để giao dịch với thẻ NCB thử nghiệm.
+[NEW] 
+order-success/page.js
+:
+Trang nhận phản hồi thanh toán từ VNPAY để thông báo kết quả giao dịch và hiển thị chi tiết hóa đơn đặt hàng đầy đủ.
+Kết quả kiểm thử thành công
+Thêm sản phẩm từ trang chủ tự động chọn biến thể mặc định đầu tiên và hiện Toast thông báo nổi.
+Tại giỏ hàng, đổi phân loại (Màu sắc / Size) ngay trên giao diện hoạt động chính xác.
+Tiến hành đặt hàng với cổng VNPAY Sandbox chuyển hướng và thanh toán thành công bằng thẻ NCB thử nghiệm (9704198526191432198).
+Trạng thái đơn hàng trên CSDL cập nhật thành Đã thanh toán và hiển thị hóa đơn thành công.
+
+Kế hoạch tích hợp cổng thanh toán VNPAY Sandbox
+Tích hợp cổng thanh toán trực tuyến VNPAY Sandbox thử nghiệm vào quy trình thanh toán trên Website Trang Store. Cho phép khách hàng thực hiện giả lập giao dịch qua ATM nội địa của ngân hàng NCB, tự động cập nhật trạng thái đơn hàng thành "Đã thanh toán" và điều hướng về trang kết quả đơn hàng.
+
+User Review Required
+IMPORTANT
+
+Cấu hình VNPAY Sandbox mặc định sử dụng các thông số thử nghiệm dùng chung:
+
+vnp_TmnCode: 2QX1X161
+vnp_HashSecret: 99797779777777777777777777777777
+NCB Test ATM Card:
+Số thẻ: 9704198526191432198
+Tên chủ thẻ: NGUYEN VAN A
+Ngày phát hành: 07/15
+Mã OTP thử nghiệm: 123456
+Đảm bảo máy tính chạy Backend có thể kết nối Internet để gọi API VNPAY và nhận thông tin redirect.
+
+Proposed Changes
+Backend Components
+[NEW] 
+paymentRoutes.js
+Tạo tệp định tuyến và xử lý thuật toán ký mã hóa (vnp_SecureHash sử dụng hmac-sha512 và thuật toán sắp xếp tham số của VNPAY):
+
+Endpoint POST /api/payment/create_payment_url: Nhận thông tin orderId và amount, tạo đường link chuyển hướng đến trang thanh toán của VNPAY.
+Endpoint GET /api/payment/vnpay_return: Nhận phản hồi từ VNPAY sau khi người dùng thực hiện giao dịch, xác minh chữ ký bảo mật (SecureHash), cập nhật trạng thái đơn hàng trong CSDL thành Đã thanh toán nếu thành công, và chuyển hướng người dùng về trang giao diện Frontend tương ứng.
+Endpoint GET /api/payment/vnpay_ipn: Cổng kiểm tra tự động (IPN) để VNPAY gọi ngầm cập nhật trạng thái đơn hàng phòng trường hợp người dùng tắt trình duyệt đột ngột lúc đang chuyển hướng.
+[MODIFY] 
+server.js
+Đăng ký Router thanh toán mới:
+
+javascript
+
+app.use('/api/payment', require('./routes/paymentRoutes'));
+Frontend Components
+[MODIFY] 
+cart/page.js
+Thay đổi luồng xử lý khi người dùng chọn phương thức thanh toán QR Code (VietQR / VNPAY):
+
+Sau khi tạo đơn hàng thành công thông qua OrderService.create, thay vì hiện Modal QR tĩnh như trước, Frontend sẽ gọi API của Backend để lấy đường link VNPAY.
+Điều hướng trình duyệt của người dùng (window.location.href) sang cổng VNPAY Sandbox để tiến hành thanh toán.
+[NEW] 
+order-success/page.js
+Tạo trang hiển thị thông báo đặt hàng và thanh toán thành công:
+
+Đọc orderId từ URL params để hiển thị thông tin hóa đơn.
+Giao diện thiết kế cao cấp, gọn gàng và có nút quay trở lại trang chủ.
+Verification Plan
+Manual Verification
+Chọn sản phẩm bất kỳ đưa vào giỏ hàng.
+Tại giỏ hàng, điền đầy đủ thông tin giao nhận và chọn phương thức QR Code (VietQR / VNPAY).
+Bấm Đặt hàng ngay. Hệ thống sẽ tự động tạo đơn hàng và chuyển bạn sang trang của VNPAY Sandbox.
+Chọn thanh toán bằng Thẻ nội địa và tài khoản ngân hàng -> chọn ngân hàng NCB.
+Nhập số thẻ test: 9704198526191432198, Tên: NGUYEN VAN A, Ngày: 07/15, Nhấp Tiếp tục.
+Nhập OTP: 123456 và bấm xác nhận.
+Đợi 5 giây để VNPAY chuyển hướng ngược lại website, hệ thống sẽ mở trang báo thành công và cập nhật Đã thanh toán tự động trên database.

@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { fetchApi } from '@/services/apiService';
+import { ContactService } from '@/services/contactService';
 
 export default function ContactPage() {
     const [formData, setFormData] = useState({
@@ -39,10 +39,7 @@ export default function ContactPage() {
         }
 
         setSubmitting(true);
-        const res = await fetchApi('/contacts', {
-            method: 'POST',
-            body: JSON.stringify(formData)
-        });
+        const res = await ContactService.create(formData);
         setSubmitting(false);
 
         if (res.success) {

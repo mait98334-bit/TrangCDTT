@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { fetchApi } from '@/services/apiService';
+import { ReviewService } from '@/services/reviewService';
 
 export default function AdminReviewPage() {
     const [reviews, setReviews] = useState([]);
@@ -10,7 +10,7 @@ export default function AdminReviewPage() {
 
     const loadReviews = async () => {
         setLoading(true);
-        const res = await fetchApi('/reviews?admin=true');
+        const res = await ReviewService.getAllAdmin();
         if (res.success) {
             setReviews(res.data);
         }
@@ -25,9 +25,7 @@ export default function AdminReviewPage() {
     const handleDeleteReview = async (id) => {
         if (!confirm('Bạn có chắc chắn muốn đưa nhận xét đánh giá này vào thùng rác?')) return;
 
-        const res = await fetchApi(`/reviews/${id}`, {
-            method: 'DELETE'
-        });
+        const res = await ReviewService.delete(id);
 
         if (res.success) {
             alert('Đã chuyển nhận xét vào Thùng rác!');
@@ -39,9 +37,7 @@ export default function AdminReviewPage() {
 
     // Khôi phục nhận xét đã xóa mềm
     const handleRestoreReview = async (id) => {
-        const res = await fetchApi(`/reviews/${id}/restore`, {
-            method: 'POST'
-        });
+        const res = await ReviewService.restore(id);
 
         if (res.success) {
             alert('Khôi phục nhận xét thành công!');
@@ -55,9 +51,7 @@ export default function AdminReviewPage() {
     const handleHardDeleteReview = async (id) => {
         if (!confirm('CẢNH BÁO: Bạn có chắc muốn xóa vĩnh viễn nhận xét này? Thao tác này sẽ xóa sạch bản ghi khỏi database và KHÔNG thể hoàn tác!')) return;
 
-        const res = await fetchApi(`/reviews/${id}/hard`, {
-            method: 'DELETE'
-        });
+        const res = await ReviewService.hardDelete(id);
 
         if (res.success) {
             alert('Đã xóa vĩnh viễn nhận xét khỏi hệ thống!');

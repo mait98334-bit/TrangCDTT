@@ -5,8 +5,8 @@ export const AuthService = {
         method: 'POST',
         body: JSON.stringify({ email, password })
     }),
-    register: (username, email, password) => fetchApi('/auth/register', {
+    register: (data) => fetchApi('/auth/register', {
         method: 'POST',
-        body: JSON.stringify({ username, email, password })
+        body: JSON.stringify(data)
     })
 };

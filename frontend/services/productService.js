@@ -17,7 +17,7 @@ export const ProductService = {
         method: 'DELETE'
     }),
     restore: (id) => fetchApi(`/products/${id}/restore`, {
-        method: 'PUT'
+        method: 'POST'
     }),
     hardDelete: (id) => fetchApi(`/products/${id}/hard`, {
         method: 'DELETE'
@@ -25,9 +25,9 @@ export const ProductService = {
 
     // Extra Images (Gallery)
     getExtraImages: (productId) => fetchApi(`/products/${productId}/extra`),
-    addExtraImage: (productId, imagePath) => fetchApi(`/products/${productId}/images`, {
+    addExtraImage: (productId, imageUrl) => fetchApi(`/products/${productId}/images`, {
         method: 'POST',
-        body: JSON.stringify({ image: imagePath })
+        body: JSON.stringify({ image_url: imageUrl })
     }),
     deleteExtraImage: (imageId) => fetchApi(`/products/images/${imageId}`, {
         method: 'DELETE'

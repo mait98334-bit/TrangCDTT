@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { fetchApi } from '@/services/apiService';
+import { UserService } from '@/services/userService';
 
 export default function AdminUserPage() {
     const [users, setUsers] = useState([]);
@@ -22,7 +22,7 @@ export default function AdminUserPage() {
 
     const loadUsers = async () => {
         setLoading(true);
-        const res = await fetchApi('/users?admin=true');
+        const res = await UserService.getAllAdmin();
         if (res.success) {
             setUsers(res.data);
         }
@@ -94,10 +94,9 @@ export default function AdminUserPage() {
             bodyData.password = formData.password;
         }
 
-        const res = await fetchApi(endpoint, {
-            method,
-            body: JSON.stringify(bodyData)
-        });
+        const res = modalType === 'add'
+            ? await UserService.create(bodyData)
+            : await UserService.update(formData.id, bodyData);
 
         setSubmitting(false);
 
@@ -114,9 +113,7 @@ export default function AdminUserPage() {
     const handleDeleteUser = async (id) => {
         if (!confirm('Bạn có chắc chắn muốn vô hiệu hóa tài khoản này? Tài khoản sẽ tạm thời bị khóa và chuyển vào Thùng rác.')) return;
 
-        const res = await fetchApi(`/users/${id}`, {
-            method: 'DELETE'
-        });
+        const res = await UserService.delete(id);
 
         if (res.success) {
             alert('Đã vô hiệu hóa tài khoản và chuyển vào Thùng rác!');
@@ -128,9 +125,7 @@ export default function AdminUserPage() {
 
     // Xử lý khôi phục tài khoản
     const handleRestoreUser = async (id) => {
-        const res = await fetchApi(`/users/${id}/restore`, {
-            method: 'POST'
-        });
+        const res = await UserService.restore(id);
 
         if (res.success) {
             alert('Khôi phục tài khoản thành công!');
@@ -144,9 +139,7 @@ export default function AdminUserPage() {
     const handleHardDeleteUser = async (id) => {
         if (!confirm('CẢNH BÁO CỰC KỲ QUAN TRỌNG: Bạn có chắc chắn muốn xóa vĩnh viễn tài khoản này? Mọi thông tin đơn hàng, đánh giá liên quan đến tài khoản này cũng có thể bị ảnh hưởng. Thao tác này KHÔNG THỂ HOÀN TÁC!')) return;
 
-        const res = await fetchApi(`/users/${id}/hard`, {
-            method: 'DELETE'
-        });
+        const res = await UserService.hardDelete(id);
 
         if (res.success) {
             alert('Đã xóa vĩnh viễn tài khoản khỏi hệ thống!');

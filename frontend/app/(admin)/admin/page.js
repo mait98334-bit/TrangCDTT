@@ -1,6 +1,9 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { fetchApi } from '@/services/apiService';
+import { ProductService } from '@/services/productService';
+import { OrderService } from '@/services/orderService';
+import { ContactService } from '@/services/contactService';
+import { UserService } from '@/services/userService';
 import Link from 'next/link';
 
 export default function AdminDashboardPage() {
@@ -21,10 +24,10 @@ export default function AdminDashboardPage() {
     useEffect(() => {
         async function fetchDashboardData() {
             const [productsRes, ordersRes, contactsRes, usersRes] = await Promise.all([
-                fetchApi('/products'),
-                fetchApi('/orders'),
-                fetchApi('/contacts'),
-                fetchApi('/users')
+                ProductService.getAll(),
+                OrderService.getAll(),
+                ContactService.getAllAdmin(),
+                UserService.getAllAdmin()
             ]);
 
             const products = productsRes.success ? productsRes.data : [];

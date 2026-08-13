@@ -18,8 +18,8 @@ const Order = {
             // Lưu từng sản phẩm vào bảng order_details
             for (const item of items) {
                 await connection.query(
-                    'INSERT INTO order_details (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)',
-                    [orderId, item.product_id, item.quantity, item.price]
+                    'INSERT INTO order_details (order_id, product_id, variant_id, quantity, price) VALUES (?, ?, ?, ?, ?)',
+                    [orderId, item.product_id, item.variant_id || item.variantId || null, item.quantity, item.price]
                 );
             }
 
@@ -50,9 +50,12 @@ const Order = {
         if (orders.length === 0) return null;
 
         const [details] = await db.query(
-            `SELECT od.*, p.name as product_name, p.image 
+            `SELECT od.*, p.name as product_name, 
+                    COALESCE(pv.image, p.image) as image,
+                    pv.color, pv.size
              FROM order_details od 
              JOIN products p ON od.product_id = p.id 
+             LEFT JOIN product_variants pv ON od.variant_id = pv.id
              WHERE od.order_id = ?`,
             [id]
         );

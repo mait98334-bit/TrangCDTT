@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { fetchApi } from '@/services/apiService';
+import { PostService } from '@/services/postService';
 import { getImageUrl } from '@/services/imageHelper';
 
 export default function PostsPage() {
@@ -14,7 +14,7 @@ export default function PostsPage() {
     useEffect(() => {
         const loadPosts = async () => {
             setLoading(true);
-            const res = await fetchApi('/posts');
+            const res = await PostService.getAll();
             if (res.success) {
                 setPosts(res.data);
             }

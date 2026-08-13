@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { fetchApi } from '@/services/apiService';
+import { ContactService } from '@/services/contactService';
 
 export default function AdminContactPage() {
     const [contacts, setContacts] = useState([]);
@@ -14,7 +14,7 @@ export default function AdminContactPage() {
 
     const loadContacts = async () => {
         setLoading(true);
-        const res = await fetchApi('/contacts?admin=true');
+        const res = await ContactService.getAllAdmin();
         if (res.success) {
             setContacts(res.data);
         }
@@ -35,9 +35,7 @@ export default function AdminContactPage() {
     const handleDeleteContact = async (id) => {
         if (!confirm('Bạn có chắc chắn muốn đưa tin nhắn liên hệ này vào thùng rác?')) return;
 
-        const res = await fetchApi(`/contacts/${id}`, {
-            method: 'DELETE'
-        });
+        const res = await ContactService.delete(id);
 
         if (res.success) {
             alert('Đã chuyển liên hệ vào Thùng rác!');
@@ -49,9 +47,7 @@ export default function AdminContactPage() {
 
     // Khôi phục liên hệ đã xóa mềm
     const handleRestoreContact = async (id) => {
-        const res = await fetchApi(`/contacts/${id}/restore`, {
-            method: 'POST'
-        });
+        const res = await ContactService.restore(id);
 
         if (res.success) {
             alert('Khôi phục liên hệ thành công!');
@@ -65,9 +61,7 @@ export default function AdminContactPage() {
     const handleHardDeleteContact = async (id) => {
         if (!confirm('CẢNH BÁO: Bạn có chắc muốn xóa vĩnh viễn tin nhắn liên hệ này? Thao tác này sẽ xóa sạch bản ghi khỏi database và KHÔNG thể hoàn tác!')) return;
 
-        const res = await fetchApi(`/contacts/${id}/hard`, {
-            method: 'DELETE'
-        });
+        const res = await ContactService.hardDelete(id);
 
         if (res.success) {
             alert('Đã xóa vĩnh viễn liên hệ khỏi hệ thống!');

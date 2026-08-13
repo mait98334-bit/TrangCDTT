@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { fetchApi } from '@/services/apiService';
+import { PostService } from '@/services/postService';
+import { ProductService } from '@/services/productService';
 import { getImageUrl } from '@/services/imageHelper';
 
 export default function AdminPostPage() {
@@ -24,7 +25,7 @@ export default function AdminPostPage() {
 
     const loadPosts = async () => {
         setLoading(true);
-        const res = await fetchApi('/posts?admin=true');
+        const res = await PostService.getAllAdmin();
         if (res.success) {
             setPosts(res.data);
         }
@@ -94,16 +95,9 @@ export default function AdminPostPage() {
         const file = e.target.files[0];
         if (!file) return;
 
-        const formDataObj = new FormData();
-        formDataObj.append('image', file);
-
         setUploadingFile(true);
         try {
-            const res = await fetch('http://localhost:5000/api/upload', {
-                method: 'POST',
-                body: formDataObj
-            });
-            const data = await res.json();
+            const data = await ProductService.uploadImage(file);
             if (data.success) {
                 setFormData((prev) => ({
                     ...prev,
@@ -130,18 +124,15 @@ export default function AdminPostPage() {
         }
 
         setSubmitting(true);
-        const endpoint = modalType === 'add' ? '/posts' : `/posts/${formData.id}`;
-        const method = modalType === 'add' ? 'POST' : 'PUT';
-
-        const res = await fetchApi(endpoint, {
-            method,
-            body: JSON.stringify({
-                title: formData.title,
-                slug: formData.slug,
-                image: formData.image,
-                content: formData.content
-            })
-        });
+        const payload = {
+            title: formData.title,
+            slug: formData.slug,
+            image: formData.image,
+            content: formData.content
+        };
+        const res = modalType === 'add'
+            ? await PostService.create(payload)
+            : await PostService.update(formData.id, payload);
 
         setSubmitting(false);
 
@@ -158,9 +149,7 @@ export default function AdminPostPage() {
     const handleDeletePost = async (id) => {
         if (!confirm('Bạn có chắc chắn muốn đưa bài viết này vào thùng rác?')) return;
 
-        const res = await fetchApi(`/posts/${id}`, {
-            method: 'DELETE'
-        });
+        const res = await PostService.delete(id);
 
         if (res.success) {
             alert('Đã chuyển bài viết vào Thùng rác!');
@@ -172,9 +161,7 @@ export default function AdminPostPage() {
 
     // Xử lý khôi phục bài viết
     const handleRestorePost = async (id) => {
-        const res = await fetchApi(`/posts/${id}/restore`, {
-            method: 'POST'
-        });
+        const res = await PostService.restore(id);
 
         if (res.success) {
             alert('Khôi phục bài viết thành công!');
@@ -188,9 +175,7 @@ export default function AdminPostPage() {
     const handleHardDeletePost = async (id) => {
         if (!confirm('CẢNH BÁO: Bạn có chắc muốn xóa vĩnh viễn bài viết này? Thao tác này sẽ xóa sạch bài viết khỏi database và KHÔNG thể hoàn tác!')) return;
 
-        const res = await fetchApi(`/posts/${id}/hard`, {
-            method: 'DELETE'
-        });
+        const res = await PostService.hardDelete(id);
 
         if (res.success) {
             alert('Đã xóa vĩnh viễn bài viết khỏi hệ thống!');

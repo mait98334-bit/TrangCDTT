@@ -2,14 +2,39 @@
 import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { fetchApi } from '@/services/apiService';
+import { ProductService } from '@/services/productService';
 import { getImageUrl } from '@/services/imageHelper';
+import { CartService } from '@/services/cartService';
 
 export const dynamic = 'force-dynamic';
 
 function ProductsContent() {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
+
+    // Xử lý thêm nhanh vào giỏ hàng
+    const handleAddToCart = async (productId) => {
+        const storedUser = localStorage.getItem('user');
+        if (!storedUser) {
+            alert('Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng!');
+            window.location.href = '/login';
+            return;
+        }
+
+        try {
+            const userObj = JSON.parse(storedUser);
+            const res = await CartService.add(userObj.id, Number(productId), 1);
+            if (res.success) {
+                window.dispatchEvent(new CustomEvent('cartToast', { detail: { message: 'Đã thêm sản phẩm vào giỏ hàng! 🛒' } }));
+                window.dispatchEvent(new Event('cartUpdate'));
+            } else {
+                alert(res.message || 'Thêm vào giỏ hàng thất bại!');
+            }
+        } catch (e) {
+            console.error('Lỗi add to cart:', e);
+            alert('Thao tác thất bại!');
+        }
+    };
 
     // Filter states driven entirely by URL search params from Header Mega Menu
     const [selectedCategory, setSelectedCategory] = useState('');
@@ -32,7 +57,7 @@ function ProductsContent() {
     useEffect(() => {
         const loadProductsData = async () => {
             setLoading(true);
-            const res = await fetchApi('/products');
+            const res = await ProductService.getAll();
             if (res.success) {
                 setProducts(res.data);
             }
@@ -117,30 +142,42 @@ function ProductsContent() {
                                     }}
                                 />
                             </Link>
-                            <div className="p-5 flex-grow flex flex-col justify-between">
-                                <div className="space-y-1">
-                                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">{item.brand_name || 'Chính hãng'}</span>
-                                    <Link href={`/product/${item.id}`} className="font-extrabold text-slate-800 hover:text-indigo-600 transition-colors block text-sm line-clamp-2 h-10 leading-tight">
-                                        {item.name}
-                                    </Link>
-                                </div>
-                                <div className="pt-4 flex items-baseline justify-between mt-auto w-full">
-                                    <div className="flex items-baseline gap-2 flex-wrap">
+                             <div className="p-5 flex-grow flex flex-col justify-between">
+                                 <div className="space-y-1">
+                                     <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">{item.brand_name || 'Chính hãng'}</span>
+                                     <Link href={`/product/${item.id}`} className="font-extrabold text-slate-800 hover:text-indigo-600 transition-colors block text-sm line-clamp-2 h-10 leading-tight">
+                                         {item.name}
+                                     </Link>
+                                     {/* Rating and Sold info */}
+                                     <div className="flex items-center justify-between text-[11px] text-slate-400 font-bold pt-1.5">
+                                         <span className="flex items-center gap-0.5 text-amber-500">★ {(item.average_rating > 0 ? Number(item.average_rating) : 5.0).toFixed(1)}</span>
+                                         <span>Đã bán {item.total_sold || 0}</span>
+                                     </div>
+                                 </div>
+                                <div className="pt-4 flex items-center justify-between mt-auto w-full border-t border-slate-50 mt-4 pt-3">
+                                    <div className="flex flex-col">
                                         {item.price_sale ? (
                                             <>
-                                                <span className="font-extrabold text-rose-600 text-sm sm:text-base whitespace-nowrap">
+                                                <span className="font-extrabold text-indigo-600 text-[14px] sm:text-[15px] whitespace-nowrap">
                                                     {Math.round(Number(item.price_sale)).toLocaleString('vi-VN')} đ
                                                 </span>
-                                                <span className="text-slate-400 line-through text-[11px] font-bold whitespace-nowrap">
+                                                <span className="text-slate-400 line-through text-[10px] font-bold whitespace-nowrap">
                                                     {Math.round(Number(item.price)).toLocaleString('vi-VN')} đ
                                                 </span>
                                             </>
                                         ) : (
-                                            <span className="font-extrabold text-rose-600 text-sm sm:text-base whitespace-nowrap">
+                                            <span className="font-extrabold text-indigo-600 text-[14px] sm:text-[15px] whitespace-nowrap">
                                                 {Math.round(Number(item.price)).toLocaleString('vi-VN')} đ
                                             </span>
                                         )}
                                     </div>
+                                    <button
+                                        onClick={() => handleAddToCart(item.id)}
+                                        className="bg-indigo-600 hover:bg-indigo-700 text-white p-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center cursor-pointer shadow-sm shadow-indigo-100 hover:shadow-md"
+                                        title="Thêm vào giỏ hàng"
+                                    >
+                                        🛒 +
+                                    </button>
                                 </div>
                             </div>
                         </div>

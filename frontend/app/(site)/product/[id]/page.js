@@ -1,6 +1,8 @@
 'use client';
 import { useState, useEffect, use } from 'react';
-import { fetchApi } from '@/services/apiService';
+import { ProductService } from '@/services/productService';
+import { ReviewService } from '@/services/reviewService';
+import { CartService } from '@/services/cartService';
 import Link from 'next/link';
 import { getImageUrl } from '@/services/imageHelper';
 
@@ -47,9 +49,9 @@ export default function ProductDetailPage({ params }) {
     const loadProductDetails = async () => {
         setLoading(true);
         const [prodRes, extraRes, reviewsRes] = await Promise.all([
-            fetchApi(`/products/${productId}`),
-            fetchApi(`/products/${productId}/extra`),
-            fetchApi(`/reviews/product/${productId}`)
+            ProductService.getById(productId),
+            ProductService.getExtraImages(productId),
+            ReviewService.getByProductId(productId)
         ]);
 
         if (prodRes.success) {
@@ -179,18 +181,12 @@ export default function ProductDetailPage({ params }) {
         }
 
         setAddingToCart(true);
-        const res = await fetchApi('/carts/add', {
-            method: 'POST',
-            body: JSON.stringify({
-                userId: currentUser.id,
-                productId: Number(productId),
-                quantity: quantity
-            })
-        });
+        const res = await CartService.add(currentUser.id, Number(productId), quantity, selectedVariant ? selectedVariant.id : null);
         setAddingToCart(false);
 
         if (res.success) {
-            alert('Đã thêm sản phẩm vào giỏ hàng thành công! 🛒');
+            window.dispatchEvent(new CustomEvent('cartToast', { detail: { message: 'Đã thêm sản phẩm vào giỏ hàng! 🛒' } }));
+            window.dispatchEvent(new Event('cartUpdate'));
         } else {
             alert(res.message || 'Thêm vào giỏ hàng thất bại!');
         }
@@ -209,14 +205,11 @@ export default function ProductDetailPage({ params }) {
         }
 
         setSubmittingReview(true);
-        const res = await fetchApi('/reviews', {
-            method: 'POST',
-            body: JSON.stringify({
-                product_id: Number(productId),
-                user_id: currentUser.id,
-                rating: newRating,
-                comment: newComment
-            })
+        const res = await ReviewService.create({
+            product_id: Number(productId),
+            user_id: currentUser.id,
+            rating: newRating,
+            comment: newComment
         });
         setSubmittingReview(false);
 
@@ -224,7 +217,7 @@ export default function ProductDetailPage({ params }) {
             alert('Cảm ơn bạn đã gửi đánh giá! ⭐');
             setNewComment('');
             // Load lại danh sách đánh giá
-            const reviewsRes = await fetchApi(`/reviews/product/${productId}`);
+            const reviewsRes = await ReviewService.getByProductId(productId);
             if (reviewsRes.success) {
                 setReviews(reviewsRes.data);
             }

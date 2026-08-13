@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { fetchApi } from '@/services/apiService';
+import { CategoryService } from '@/services/categoryService';
 
 export default function AdminCategoryPage() {
     const [categories, setCategories] = useState([]);
@@ -21,7 +21,7 @@ export default function AdminCategoryPage() {
     // Load danh sách danh mục từ backend
     const loadCategories = async () => {
         setLoading(true);
-        const res = await fetchApi('/categories?admin=true');
+        const res = await CategoryService.getAllAdmin();
         if (res.success) {
             setCategories(res.data);
         }
@@ -92,16 +92,13 @@ export default function AdminCategoryPage() {
         }
 
         setSubmitting(true);
-        const endpoint = modalType === 'add' ? '/categories' : `/categories/${formData.id}`;
-        const method = modalType === 'add' ? 'POST' : 'PUT';
-
-        const res = await fetchApi(endpoint, {
-            method,
-            body: JSON.stringify({
-                name: formData.name,
-                slug: formData.slug
-            })
-        });
+        const payload = {
+            name: formData.name,
+            slug: formData.slug
+        };
+        const res = modalType === 'add'
+            ? await CategoryService.create(payload)
+            : await CategoryService.update(formData.id, payload);
 
         setSubmitting(false);
 
@@ -118,9 +115,7 @@ export default function AdminCategoryPage() {
     const handleDelete = async (id) => {
         if (!confirm('Bạn có chắc chắn muốn đưa danh mục này vào thùng rác?')) return;
 
-        const res = await fetchApi(`/categories/${id}`, {
-            method: 'DELETE'
-        });
+        const res = await CategoryService.delete(id);
 
         if (res.success) {
             alert('Đã chuyển danh mục vào Thùng rác!');
@@ -132,9 +127,7 @@ export default function AdminCategoryPage() {
 
     // Xử lý khôi phục danh mục
     const handleRestore = async (id) => {
-        const res = await fetchApi(`/categories/${id}/restore`, {
-            method: 'POST'
-        });
+        const res = await CategoryService.restore(id);
 
         if (res.success) {
             alert('Khôi phục danh mục thành công!');
@@ -148,9 +141,7 @@ export default function AdminCategoryPage() {
     const handleHardDelete = async (id) => {
         if (!confirm('CẢNH BÁO: Bạn có chắc muốn xóa vĩnh viễn danh mục này? Thao tác này sẽ xóa sạch danh mục khỏi database và KHÔNG thể hoàn tác!')) return;
 
-        const res = await fetchApi(`/categories/${id}/hard`, {
-            method: 'DELETE'
-        });
+        const res = await CategoryService.hardDelete(id);
 
         if (res.success) {
             alert('Đã xóa vĩnh viễn danh mục khỏi hệ thống!');

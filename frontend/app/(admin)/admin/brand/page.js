@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { fetchApi } from '@/services/apiService';
+import { BrandService } from '@/services/brandService';
 
 export default function AdminBrandPage() {
     const [brands, setBrands] = useState([]);
@@ -21,7 +21,7 @@ export default function AdminBrandPage() {
     // Load danh sách thương hiệu từ backend
     const loadBrands = async () => {
         setLoading(true);
-        const res = await fetchApi('/brands?admin=true');
+        const res = await BrandService.getAllAdmin();
         if (res.success) {
             setBrands(res.data);
         }
@@ -91,16 +91,13 @@ export default function AdminBrandPage() {
         }
 
         setSubmitting(true);
-        const endpoint = modalType === 'add' ? '/brands' : `/brands/${formData.id}`;
-        const method = modalType === 'add' ? 'POST' : 'PUT';
-
-        const res = await fetchApi(endpoint, {
-            method,
-            body: JSON.stringify({
-                name: formData.name,
-                slug: formData.slug
-            })
-        });
+        const payload = {
+            name: formData.name,
+            slug: formData.slug
+        };
+        const res = modalType === 'add'
+            ? await BrandService.create(payload)
+            : await BrandService.update(formData.id, payload);
 
         setSubmitting(false);
 
@@ -117,9 +114,7 @@ export default function AdminBrandPage() {
     const handleDelete = async (id) => {
         if (!confirm('Bạn có chắc chắn muốn đưa thương hiệu này vào thùng rác?')) return;
 
-        const res = await fetchApi(`/brands/${id}`, {
-            method: 'DELETE'
-        });
+        const res = await BrandService.delete(id);
 
         if (res.success) {
             alert('Đã chuyển thương hiệu vào Thùng rác!');
@@ -131,9 +126,7 @@ export default function AdminBrandPage() {
 
     // Xử lý khôi phục thương hiệu
     const handleRestore = async (id) => {
-        const res = await fetchApi(`/brands/${id}/restore`, {
-            method: 'POST'
-        });
+        const res = await BrandService.restore(id);
 
         if (res.success) {
             alert('Khôi phục thương hiệu thành công!');
@@ -147,9 +140,7 @@ export default function AdminBrandPage() {
     const handleHardDelete = async (id) => {
         if (!confirm('CẢNH BÁO: Bạn có chắc muốn xóa vĩnh viễn thương hiệu này? Thao tác này sẽ xóa sạch thương hiệu khỏi database và KHÔNG thể hoàn tác!')) return;
 
-        const res = await fetchApi(`/brands/${id}/hard`, {
-            method: 'DELETE'
-        });
+        const res = await BrandService.hardDelete(id);
 
         if (res.success) {
             alert('Đã xóa vĩnh viễn thương hiệu khỏi hệ thống!');

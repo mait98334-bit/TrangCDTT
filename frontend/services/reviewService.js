@@ -11,7 +11,7 @@ export const ReviewService = {
         method: 'DELETE'
     }),
     restore: (id) => fetchApi(`/reviews/${id}/restore`, {
-        method: 'PUT'
+        method: 'POST'
     }),
     hardDelete: (id) => fetchApi(`/reviews/${id}/hard`, {
         method: 'DELETE'

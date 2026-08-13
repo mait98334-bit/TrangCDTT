@@ -13,5 +13,12 @@ export const BrandService = {
     }),
     delete: (id) => fetchApi(`/brands/${id}`, {
         method: 'DELETE'
+    }),
+    getAllAdmin: () => fetchApi('/brands?admin=true'),
+    restore: (id) => fetchApi(`/brands/${id}/restore`, {
+        method: 'POST'
+    }),
+    hardDelete: (id) => fetchApi(`/brands/${id}/hard`, {
+        method: 'DELETE'
     })
 };

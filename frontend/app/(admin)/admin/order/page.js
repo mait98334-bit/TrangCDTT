@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { fetchApi } from '@/services/apiService';
+import { OrderService } from '@/services/orderService';
 import { getImageUrl } from '@/services/imageHelper';
 
 export default function AdminOrderPage() {
@@ -16,7 +16,7 @@ export default function AdminOrderPage() {
 
     const loadOrders = async () => {
         setLoading(true);
-        const res = await fetchApi('/orders');
+        const res = await OrderService.getAll();
         if (res.success) {
             setOrders(res.data);
         }
@@ -29,7 +29,7 @@ export default function AdminOrderPage() {
 
     // Mở modal xem chi tiết đơn hàng
     const handleOpenDetails = async (orderId) => {
-        const res = await fetchApi(`/orders/${orderId}`);
+        const res = await OrderService.getById(orderId);
         if (res.success) {
             setSelectedOrderDetails(res.data);
             setSelectedStatus(res.data.order.status || 'Chờ xử lý');
@@ -45,17 +45,14 @@ export default function AdminOrderPage() {
         if (!selectedOrderDetails) return;
 
         setUpdatingStatus(true);
-        const res = await fetchApi(`/orders/${selectedOrderDetails.order.id}/status`, {
-            method: 'PUT',
-            body: JSON.stringify({ status: selectedStatus })
-        });
+        const res = await OrderService.updateStatus(selectedOrderDetails.order.id, selectedStatus);
         setUpdatingStatus(false);
 
         if (res.success) {
             alert('Cập nhật trạng thái đơn hàng thành công!');
             // Load lại danh sách và cập nhật modal hiện tại
             loadOrders();
-            const detailRes = await fetchApi(`/orders/${selectedOrderDetails.order.id}`);
+            const detailRes = await OrderService.getById(selectedOrderDetails.order.id);
             if (detailRes.success) {
                 setSelectedOrderDetails(detailRes.data);
             }
@@ -68,9 +65,7 @@ export default function AdminOrderPage() {
     const handleDeleteOrder = async (orderId) => {
         if (!confirm('Bạn có chắc chắn muốn xóa đơn hàng này? Thao tác này sẽ xóa vĩnh viễn đơn hàng và chi tiết sản phẩm.')) return;
 
-        const res = await fetchApi(`/orders/${orderId}`, {
-            method: 'DELETE'
-        });
+        const res = await OrderService.delete(orderId);
 
         if (res.success) {
             alert('Xóa đơn hàng thành công!');

@@ -1,6 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
-import { fetchApi } from "@/services/apiService";
+import { ProductService } from "@/services/productService";
+import { CategoryService } from "@/services/categoryService";
+import { BrandService } from "@/services/brandService";
 import { getImageUrl } from "@/services/imageHelper";
 export default function AdminProductPage() {
   const [products, setProducts] = useState([]);
@@ -61,7 +63,7 @@ export default function AdminProductPage() {
   // Load danh sách sản phẩm từ backend
   const loadProducts = async () => {
     setLoading(true);
-    const res = await fetchApi("/products?admin=true");
+    const res = await ProductService.getAllAdmin();
     if (res.success) {
       setProducts(res.data);
     }
@@ -70,8 +72,8 @@ export default function AdminProductPage() {
   // Load danh mục và thương hiệu để chọn trong select
   const loadFilters = async () => {
     const [resCat, resBrand] = await Promise.all([
-      fetchApi("/categories"),
-      fetchApi("/brands"),
+      CategoryService.getAll(),
+      BrandService.getAll(),
     ]);
     if (resCat.success) setCategories(resCat.data);
     if (resBrand.success) setBrands(resBrand.data);
@@ -140,15 +142,9 @@ export default function AdminProductPage() {
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    const formDataObj = new FormData();
-    formDataObj.append("image", file);
     setUploadingFile(true);
     try {
-      const res = await fetch("http://localhost:5000/api/upload", {
-        method: "POST",
-        body: formDataObj,
-      });
-      const data = await res.json();
+      const data = await ProductService.uploadImage(file);
       if (data.success) {
         setFormData((prev) => ({
           ...prev,
@@ -169,24 +165,21 @@ export default function AdminProductPage() {
   // Xử lý Submit form sản phẩm chính (Thêm/Sửa)
   const triggerSaveProduct = async () => {
     setSubmitting(true);
-    const endpoint =
-      modalType === "add" ? "/products" : `/products/${formData.id}`;
-    const method = modalType === "add" ? "POST" : "PUT";
-    const res = await fetchApi(endpoint, {
-      method,
-      body: JSON.stringify({
-        name: formData.name,
-        price: Number(formData.price),
-        price_sale: formData.price_sale ? Number(formData.price_sale) : null,
-        image: formData.image,
-        description: formData.description,
-        category_id: formData.category_id ? Number(formData.category_id) : null,
-        brand_id: formData.brand_id ? Number(formData.brand_id) : null,
-        is_sale: Number(formData.is_sale || 0),
-        is_hot: Number(formData.is_hot || 0),
-        is_new: Number(formData.is_new || 0),
-      }),
-    });
+    const payload = {
+      name: formData.name,
+      price: Number(formData.price),
+      price_sale: formData.price_sale ? Number(formData.price_sale) : null,
+      image: formData.image,
+      description: formData.description,
+      category_id: formData.category_id ? Number(formData.category_id) : null,
+      brand_id: formData.brand_id ? Number(formData.brand_id) : null,
+      is_sale: Number(formData.is_sale || 0),
+      is_hot: Number(formData.is_hot || 0),
+      is_new: Number(formData.is_new || 0),
+    };
+    const res = modalType === "add"
+      ? await ProductService.create(payload)
+      : await ProductService.update(formData.id, payload);
     if (res.success) {
       if (modalType === "add") {
         const newProduct = res.data;
@@ -194,24 +187,18 @@ export default function AdminProductPage() {
         // 1. Lưu toàn bộ ảnh phụ trong newProductImages
         if (newProductImages.length > 0) {
           for (const img of newProductImages) {
-            await fetchApi(`/products/${productId}/images`, {
-              method: "POST",
-              body: JSON.stringify({ image_url: img.image_url }),
-            });
+            await ProductService.addExtraImage(productId, img.image_url);
           }
         }
         // 2. Lưu toàn bộ biến thể trong newProductVariants
         if (newProductVariants.length > 0) {
           for (const v of newProductVariants) {
-            await fetchApi(`/products/${productId}/variants`, {
-              method: "POST",
-              body: JSON.stringify({
-                color: v.color || null,
-                size: v.size || null,
-                price: v.price ? Number(v.price) : null,
-                stock: Number(v.stock),
-                image: v.image || null,
-              }),
+            await ProductService.addVariant(productId, {
+              color: v.color || null,
+              size: v.size || null,
+              price: v.price ? Number(v.price) : null,
+              stock: Number(v.stock),
+              image: v.image || null,
             });
           }
         }
@@ -251,9 +238,7 @@ export default function AdminProductPage() {
   const handleDelete = async (id) => {
     if (!confirm("Bạn có chắc chắn muốn đưa sản phẩm này vào thùng rác?"))
       return;
-    const res = await fetchApi(`/products/${id}`, {
-      method: "DELETE",
-    });
+    const res = await ProductService.delete(id);
     if (res.success) {
       alert("Đã chuyển sản phẩm vào Thùng rác!");
       loadProducts();
@@ -263,9 +248,7 @@ export default function AdminProductPage() {
   };
   // Xử lý khôi phục sản phẩm đã xóa mềm
   const handleRestore = async (id) => {
-    const res = await fetchApi(`/products/${id}/restore`, {
-      method: "POST",
-    });
+    const res = await ProductService.restore(id);
     if (res.success) {
       alert("Khôi phục sản phẩm thành công!");
       loadProducts();
@@ -281,9 +264,7 @@ export default function AdminProductPage() {
       )
     )
       return;
-    const res = await fetchApi(`/products/${id}/hard`, {
-      method: "DELETE",
-    });
+    const res = await ProductService.hardDelete(id);
     if (res.success) {
       alert("Đã xóa vĩnh viễn sản phẩm!");
       loadProducts();
@@ -305,7 +286,7 @@ export default function AdminProductPage() {
   };
   // Load ảnh phụ và biến thể từ backend
   const loadProductExtra = async (productId) => {
-    const res = await fetchApi(`/products/${productId}/extra`);
+    const res = await ProductService.getExtraImages(productId);
     if (res.success) {
       setExtraImages(res.data.images || []);
       setExtraVariants(res.data.variants || []);
@@ -315,15 +296,9 @@ export default function AdminProductPage() {
   const handleExtraImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    const formDataObj = new FormData();
-    formDataObj.append("image", file);
     setUploadingExtraFile(true);
     try {
-      const res = await fetch("http://localhost:5000/api/upload", {
-        method: "POST",
-        body: formDataObj,
-      });
-      const data = await res.json();
+      const data = await ProductService.uploadImage(file);
       if (data.success) {
         if (modalType === "add") {
           setNewProductImages((prev) => [
@@ -333,13 +308,7 @@ export default function AdminProductPage() {
           alert("Thêm ảnh phụ thành công!");
         } else {
           // Thêm vào database
-          const addRes = await fetchApi(
-            `/products/${selectedExtraProduct.id}/images`,
-            {
-              method: "POST",
-              body: JSON.stringify({ image_url: data.url }),
-            },
-          );
+          const addRes = await ProductService.addExtraImage(selectedExtraProduct.id, data.url);
           if (addRes.success) {
             loadProductExtra(selectedExtraProduct.id);
             alert("Thêm ảnh phụ thành công!");
@@ -367,13 +336,7 @@ export default function AdminProductPage() {
       setNewImageUrl("");
       alert("Thêm ảnh phụ thành công!");
     } else {
-      const res = await fetchApi(
-        `/products/${selectedExtraProduct.id}/images`,
-        {
-          method: "POST",
-          body: JSON.stringify({ image_url: newImageUrl }),
-        },
-      );
+      const res = await ProductService.addExtraImage(selectedExtraProduct.id, newImageUrl);
       if (res.success) {
         loadProductExtra(selectedExtraProduct.id);
         setNewImageUrl("");
@@ -388,9 +351,7 @@ export default function AdminProductPage() {
     if (modalType === "add") {
       setNewProductImages((prev) => prev.filter((img) => img.id !== imageId));
     } else {
-      const res = await fetchApi(`/products/images/${imageId}`, {
-        method: "DELETE",
-      });
+      const res = await ProductService.deleteExtraImage(imageId);
       if (res.success) {
         loadProductExtra(selectedExtraProduct.id);
       } else {
@@ -435,14 +396,8 @@ export default function AdminProductPage() {
   const handleVariantImageUpload = async (e, index) => {
     const file = e.target.files[0];
     if (!file) return;
-    const formDataObj = new FormData();
-    formDataObj.append("image", file);
     try {
-      const res = await fetch("http://localhost:5000/api/upload", {
-        method: "POST",
-        body: formDataObj,
-      });
-      const data = await res.json();
+      const data = await ProductService.uploadImage(file);
       if (data.success) {
         setTempVariants((prev) => {
           const updated = [...prev];
@@ -495,19 +450,13 @@ export default function AdminProductPage() {
       let failCount = 0;
       // Lưu tuần tự từng biến thể lên backend
       for (const variant of validVariants) {
-        const res = await fetchApi(
-          `/products/${selectedExtraProduct.id}/variants`,
-          {
-            method: "POST",
-            body: JSON.stringify({
-              color: variant.color || null,
-              size: variant.size || null,
-              price: variant.price ? Number(variant.price) : null,
-              stock: Number(variant.stock),
-              image: variant.image || null,
-            }),
-          },
-        );
+        const res = await ProductService.addVariant(selectedExtraProduct.id, {
+          color: variant.color || null,
+          size: variant.size || null,
+          price: variant.price ? Number(variant.price) : null,
+          stock: Number(variant.stock),
+          image: variant.image || null,
+        });
         if (res.success) {
           successCount++;
         } else {
@@ -537,9 +486,7 @@ export default function AdminProductPage() {
       setNewProductVariants((prev) => prev.filter((v) => v.id !== variantId));
       setSelectedVariantIds((prev) => prev.filter((x) => x !== variantId));
     } else {
-      const res = await fetchApi(`/products/variants/${variantId}`, {
-        method: "DELETE",
-      });
+      const res = await ProductService.deleteVariant(variantId);
       if (res.success) {
         setSelectedVariantIds((prev) => prev.filter((x) => x !== variantId));
         loadProductExtra(selectedExtraProduct.id);
@@ -579,9 +526,7 @@ export default function AdminProductPage() {
     } else {
       let successCount = 0;
       for (const id of selectedVariantIds) {
-        const res = await fetchApi(`/products/variants/${id}`, {
-          method: "DELETE",
-        });
+        const res = await ProductService.deleteVariant(id);
         if (res.success) successCount++;
       }
       setSelectedVariantIds([]);
@@ -622,18 +567,15 @@ export default function AdminProductPage() {
       setEditingVariantId(null);
       alert("Cập nhật biến thể thành công!");
     } else {
-      const res = await fetchApi(`/products/variants/${id}`, {
-        method: "PUT",
-        body: JSON.stringify({
-          color: editingVariantData.color || null,
-          size: editingVariantData.size || null,
-          price:
-            editingVariantData.price !== ""
-              ? Number(editingVariantData.price)
-              : null,
-          stock: Number(editingVariantData.stock),
-          image: editingVariantData.image || null,
-        }),
+      const res = await ProductService.updateVariant(id, {
+        color: editingVariantData.color || null,
+        size: editingVariantData.size || null,
+        price:
+          editingVariantData.price !== ""
+            ? Number(editingVariantData.price)
+            : null,
+        stock: Number(editingVariantData.stock),
+        image: editingVariantData.image || null,
       });
       if (res.success) {
         setEditingVariantId(null);
@@ -647,14 +589,8 @@ export default function AdminProductPage() {
   const handleEditingVariantImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    const formDataObj = new FormData();
-    formDataObj.append("image", file);
     try {
-      const res = await fetch("http://localhost:5000/api/upload", {
-        method: "POST",
-        body: formDataObj,
-      });
-      const data = await res.json();
+      const data = await ProductService.uploadImage(file);
       if (data.success) {
         setEditingVariantData((prev) => ({ ...prev, image: data.url }));
         alert("Tải ảnh biến thể thành công!");
@@ -712,10 +648,7 @@ export default function AdminProductPage() {
               : original.stock,
           image: original.image,
         };
-        const res = await fetchApi(`/products/variants/${id}`, {
-          method: "PUT",
-          body: JSON.stringify(updateData),
-        });
+        const res = await ProductService.updateVariant(id, updateData);
         if (res.success) successCount++;
       }
       setSelectedVariantIds([]);

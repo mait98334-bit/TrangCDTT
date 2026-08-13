@@ -13,5 +13,12 @@ export const CategoryService = {
     }),
     delete: (id) => fetchApi(`/categories/${id}`, {
         method: 'DELETE'
+    }),
+    getAllAdmin: () => fetchApi('/categories?admin=true'),
+    restore: (id) => fetchApi(`/categories/${id}/restore`, {
+        method: 'POST'
+    }),
+    hardDelete: (id) => fetchApi(`/categories/${id}/hard`, {
+        method: 'DELETE'
     })
 };

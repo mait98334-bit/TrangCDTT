@@ -23,4 +23,7 @@ router.post('/add', cartController.addToCart);
 // DELETE /api/carts/item/:itemId -> Xóa 1 sản phẩm khỏi giỏ
 router.delete('/item/:itemId', cartController.removeCartItem);
 
+// PUT /api/carts/item/:itemId -> Cập nhật số lượng sản phẩm trong giỏ
+router.put('/item/:itemId', cartController.updateCartItem);
+
 module.exports = router;
