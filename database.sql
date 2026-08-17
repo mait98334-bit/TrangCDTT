@@ -143,7 +143,7 @@ CREATE TABLE `chat_messages` (
   `is_admin` tinyint(1) DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -152,7 +152,7 @@ CREATE TABLE `chat_messages` (
 
 LOCK TABLES `chat_messages` WRITE;
 /*!40000 ALTER TABLE `chat_messages` DISABLE KEYS */;
-INSERT INTO `chat_messages` VALUES (1,'user_2','Trang Si','tôi muốn mua đồ free thôi. chứ tôi ko có tiền',0,'2026-08-17 03:08:34'),(2,'user_2','Admin Store','bạn có học qua lớp của thầy huấn chưa. hay trốn học buổi đó',1,'2026-08-17 03:09:20'),(3,'user_2','Trang Si','à tôi có vào rồi. nhưng mà tôi ko thích ăn shit. tôi chỉ muốn ăn đồ của shop free thôi',0,'2026-08-17 03:09:52');
+INSERT INTO `chat_messages` VALUES (1,'user_2','Trang Si','tôi muốn mua đồ free thôi. chứ tôi ko có tiền',0,'2026-08-17 03:08:34'),(2,'user_2','Admin Store','bạn có học qua lớp của thầy huấn chưa. hay trốn học buổi đó',1,'2026-08-17 03:09:20'),(3,'user_2','Trang Si','à tôi có vào rồi. nhưng mà tôi ko thích ăn shit. tôi chỉ muốn ăn đồ của shop free thôi',0,'2026-08-17 03:09:52'),(4,'user_2_1786938301495','Trang Si (Cuộc trò chuyện #2)','tôi muốn mua đồ free. chứ tôi ko có tiền ',0,'2026-08-17 03:45:15'),(5,'user_2_1786938301495','Admin Store','bạn bỏ học buổi học thầy huấn dạy à',1,'2026-08-17 03:45:40'),(6,'user_2_1786938301495','Trang Si (Cuộc trò chuyện #2)','tôi biết. nm tôi ko thích ăn shit. tôi muốn ăn đồ free của shop bạn ',0,'2026-08-17 03:46:10'),(7,'user_2_1786938301495','Admin Store','vậy bạn đến địa chỉ shop vào đêm nay. tôi sẽ cho bạn đồ free shop tôi',1,'2026-08-17 03:47:19'),(8,'user_2_1786938301495','Trang Si (Cuộc trò chuyện #2)','tôi sợ mẹ mắng lắm. đi tới nhà đàn ông vào ban đêm  nguy hiểm.',0,'2026-08-17 03:47:55'),(9,'user_2_1786938301495','Trang Si (Cuộc trò chuyện #2)','nam nữ thụ thụ bất thân',0,'2026-08-17 03:48:07'),(10,'user_2_1786938301495','Admin Store','ai nói bạn tôi là đàn ông?',1,'2026-08-17 03:48:22'),(11,'user_2_1786938301495','Trang Si (Cuộc trò chuyện #2)','ồ les les',0,'2026-08-17 03:49:20'),(12,'user_2','Admin Store','ok',1,'2026-08-17 03:50:27'),(13,'user_2','Admin Store','vậy tới đây đêm nay với tôi',1,'2026-08-17 03:50:41'),(14,'user_2','Admin Store','tôi sẽ cho bạn đồ free của shop tôi trọn đời',1,'2026-08-17 03:50:59');
 /*!40000 ALTER TABLE `chat_messages` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -452,4 +452,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-08-17 10:21:26
+-- Dump completed on 2026-08-17 11:12:48

@@ -12,6 +12,9 @@ export default function AdminChatPage() {
     const [loadingMessages, setLoadingMessages] = useState(false);
 
     const chatEndRef = useRef(null);
+    const chatBodyRef = useRef(null);
+    const prevMessagesCountRef = useRef(0);
+    const prevSessionIdRef = useRef('');
     const sessionsPollingRef = useRef(null);
     const messagesPollingRef = useRef(null);
 
@@ -89,10 +92,44 @@ export default function AdminChatPage() {
         };
     }, [selectedSessionId]);
 
-    // 5. Tự động cuộn xuống dưới cùng khi có tin nhắn mới
+    // 5. Tự động cuộn xuống dưới cùng thông minh
     useEffect(() => {
-        chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages]);
+        const container = chatBodyRef.current;
+        if (!container) return;
+
+        const isSessionChanged = selectedSessionId !== prevSessionIdRef.current;
+        prevSessionIdRef.current = selectedSessionId;
+
+        const currentCount = messages.length;
+        const prevCount = prevMessagesCountRef.current;
+        prevMessagesCountRef.current = currentCount;
+
+        // Nếu chuyển phòng chat khác, cuộn xuống cuối lập tức
+        if (isSessionChanged) {
+            container.scrollTop = container.scrollHeight;
+            return;
+        }
+
+        // Nếu số lượng tin nhắn không tăng thêm, không cuộn (tránh giật màn hình khi polling)
+        if (currentCount <= prevCount) {
+            return;
+        }
+
+        // Kiểm tra xem tin nhắn cuối có phải của admin không
+        const lastMessage = messages[messages.length - 1];
+        const isLastMessageFromAdmin = !!lastMessage?.is_admin;
+
+        // Kiểm tra xem người dùng có đang cuộn gần cuối trang không (cách đáy < 150px)
+        const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150;
+
+        if (isLastMessageFromAdmin || isNearBottom) {
+            // Cuộn mượt mà xuống dưới cùng
+            container.scrollTo({
+                top: container.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+    }, [messages, selectedSessionId]);
 
     // 6. Admin gửi tin nhắn phản hồi
     const handleSendMessage = async (e) => {
@@ -206,7 +243,7 @@ export default function AdminChatPage() {
                             </div>
 
                             {/* Messages Body */}
-                             <div className="h-[430px] p-6 overflow-y-auto space-y-4 bg-slate-50/50 flex-shrink-0">
+                             <div ref={chatBodyRef} className="h-[430px] p-6 overflow-y-auto space-y-4 bg-slate-50/50 flex-shrink-0">
                                 {loadingMessages && messages.length === 0 ? (
                                     <div className="flex justify-center items-center h-full text-xs text-gray-400">
                                         <div className="w-5 h-5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin mr-2"></div>
