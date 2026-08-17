@@ -28,10 +28,10 @@ export default function AdminReviewPage() {
         const res = await ReviewService.delete(id);
 
         if (res.success) {
-            alert('Đã chuyển nhận xét vào Thùng rác!');
+            window.dispatchEvent(new CustomEvent('showToast', { detail: { message: 'Đã chuyển nhận xét vào Thùng rác!', type: 'success' } }));
             loadReviews();
         } else {
-            alert(res.message || 'Xóa nhận xét thất bại!');
+            window.dispatchEvent(new CustomEvent('showToast', { detail: { message: res.message || 'Xóa nhận xét thất bại!', type: 'error' } }));
         }
     };
 
@@ -40,10 +40,10 @@ export default function AdminReviewPage() {
         const res = await ReviewService.restore(id);
 
         if (res.success) {
-            alert('Khôi phục nhận xét thành công!');
+            window.dispatchEvent(new CustomEvent('showToast', { detail: { message: 'Khôi phục nhận xét thành công!', type: 'success' } }));
             loadReviews();
         } else {
-            alert(res.message || 'Khôi phục nhận xét thất bại!');
+            window.dispatchEvent(new CustomEvent('showToast', { detail: { message: res.message || 'Khôi phục nhận xét thất bại!', type: 'error' } }));
         }
     };
 
@@ -54,10 +54,10 @@ export default function AdminReviewPage() {
         const res = await ReviewService.hardDelete(id);
 
         if (res.success) {
-            alert('Đã xóa vĩnh viễn nhận xét khỏi hệ thống!');
+            window.dispatchEvent(new CustomEvent('showToast', { detail: { message: 'Đã xóa vĩnh viễn nhận xét khỏi hệ thống!', type: 'success' } }));
             loadReviews();
         } else {
-            alert(res.message || 'Xóa vĩnh viễn thất bại!');
+            window.dispatchEvent(new CustomEvent('showToast', { detail: { message: res.message || 'Xóa vĩnh viễn thất bại!', type: 'error' } }));
         }
     };
 

@@ -49,7 +49,7 @@ export default function AdminOrderPage() {
         setUpdatingStatus(false);
 
         if (res.success) {
-            alert('Cập nhật trạng thái đơn hàng thành công!');
+            window.dispatchEvent(new CustomEvent('showToast', { detail: { message: 'Cập nhật trạng thái đơn hàng thành công!', type: 'success' } }));
             // Load lại danh sách và cập nhật modal hiện tại
             loadOrders();
             const detailRes = await OrderService.getById(selectedOrderDetails.order.id);
@@ -57,7 +57,7 @@ export default function AdminOrderPage() {
                 setSelectedOrderDetails(detailRes.data);
             }
         } else {
-            alert(res.message || 'Cập nhật trạng thái thất bại!');
+            window.dispatchEvent(new CustomEvent('showToast', { detail: { message: res.message || 'Cập nhật trạng thái thất bại!', type: 'error' } }));
         }
     };
 
@@ -68,10 +68,10 @@ export default function AdminOrderPage() {
         const res = await OrderService.delete(orderId);
 
         if (res.success) {
-            alert('Xóa đơn hàng thành công!');
+            window.dispatchEvent(new CustomEvent('showToast', { detail: { message: 'Xóa đơn hàng thành công!', type: 'success' } }));
             loadOrders();
         } else {
-            alert(res.message || 'Xóa đơn hàng thất bại!');
+            window.dispatchEvent(new CustomEvent('showToast', { detail: { message: res.message || 'Xóa đơn hàng thất bại!', type: 'error' } }));
         }
     };
 

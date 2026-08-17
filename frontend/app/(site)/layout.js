@@ -52,6 +52,7 @@ export default function SiteLayout({ children }) {
             if (userStr) {
                 try {
                     const parsed = JSON.parse(userStr);
+                    setUser(parsed);
                     const cartRes = await CartService.getByUserId(parsed.id);
                     if (cartRes.success) {
                         const totalQty = cartRes.data.items.reduce((sum, item) => sum + item.quantity, 0);
@@ -61,12 +62,15 @@ export default function SiteLayout({ children }) {
                     console.error(e);
                 }
             } else {
+                setUser(null);
                 setCartCount(0);
             }
         };
 
         const showCartToast = (e) => {
-            setToast({ show: true, message: e.detail?.message || 'Đã thêm sản phẩm vào giỏ hàng! 🛒' });
+            const message = e.detail?.message || 'Đã thêm sản phẩm vào giỏ hàng! 🛒';
+            const type = e.detail?.type || 'success';
+            setToast({ show: true, message, type });
             setTimeout(() => {
                 setToast(prev => ({ ...prev, show: false }));
             }, 2500);
@@ -74,9 +78,11 @@ export default function SiteLayout({ children }) {
 
         window.addEventListener('cartUpdate', updateCartBadge);
         window.addEventListener('cartToast', showCartToast);
+        window.addEventListener('showToast', showCartToast);
         return () => {
             window.removeEventListener('cartUpdate', updateCartBadge);
             window.removeEventListener('cartToast', showCartToast);
+            window.removeEventListener('showToast', showCartToast);
         };
     }, []);
 
@@ -197,19 +203,17 @@ export default function SiteLayout({ children }) {
                         {/* Right Actions */}
                         <div className="flex items-center gap-4">
                             {/* Shopping Cart Icon with Badge */}
-                            {user && (
-                                <Link 
-                                    href="/cart" 
-                                    className="relative p-2.5 bg-slate-100 hover:bg-indigo-50 text-slate-600 hover:text-indigo-600 rounded-xl transition-all flex items-center justify-center cursor-pointer"
-                                >
-                                    <span className="text-xl">🛒</span>
-                                    {cartCount > 0 && (
-                                        <span className="absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-md animate-pulse">
-                                            {cartCount}
-                                        </span>
-                                    )}
-                                </Link>
-                            )}
+                            <Link 
+                                href="/cart" 
+                                className="relative p-2.5 bg-slate-100 hover:bg-indigo-50 text-slate-600 hover:text-indigo-600 rounded-xl transition-all flex items-center justify-center cursor-pointer"
+                            >
+                                <span className="text-xl">🛒</span>
+                                {cartCount > 0 && (
+                                    <span className="absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-md animate-pulse">
+                                        {cartCount}
+                                    </span>
+                                )}
+                            </Link>
 
                             {/* Admin Shortcut link (Chỉ hiển thị cho admin) */}
                             {user && (user.role === 'admin' || user.email?.includes('admin')) && (
@@ -365,8 +369,14 @@ export default function SiteLayout({ children }) {
 
             {/* Custom Global Toast Notification */}
             {toast.show && (
-                <div className="fixed bottom-5 right-5 z-[9999] bg-emerald-50 border border-emerald-150 text-emerald-800 px-4 py-3 rounded-2xl shadow-xl font-bold text-xs transition-all transform animate-in slide-in-from-bottom-5 duration-300 flex items-center gap-2">
-                    <span>✅</span>
+                <div className={`fixed bottom-5 right-5 z-[9999] px-4 py-3 rounded-2xl shadow-xl border text-xs font-bold transition-all transform animate-in slide-in-from-bottom-5 duration-300 flex items-center gap-2 ${
+                    toast.type === 'error' 
+                        ? 'bg-rose-50 border-rose-150 text-rose-800' 
+                        : toast.type === 'warning'
+                        ? 'bg-amber-50 border-amber-150 text-amber-800'
+                        : 'bg-emerald-50 border-emerald-150 text-emerald-800'
+                }`}>
+                    <span>{toast.type === 'error' ? '❌' : toast.type === 'warning' ? '⚠️' : '✅'}</span>
                     <span>{toast.message}</span>
                 </div>
             )}

@@ -150,13 +150,13 @@ export default function AdminProductPage() {
           ...prev,
           image: data.url,
         }));
-        alert("Tải ảnh lên thành công!");
+        window.dispatchEvent(new CustomEvent('showToast', { detail: { message: "Tải ảnh lên thành công!", type: 'success' } }));
       } else {
-        alert(data.message || "Tải ảnh thất bại!");
+        window.dispatchEvent(new CustomEvent('showToast', { detail: { message: data.message || "Tải ảnh thất bại!", type: 'error' } }));
       }
     } catch (err) {
       console.error("Error uploading image:", err);
-      alert("Có lỗi xảy ra khi kết nối máy chủ để tải ảnh!");
+      window.dispatchEvent(new CustomEvent('showToast', { detail: { message: "Có lỗi xảy ra khi kết nối máy chủ để tải ảnh!", type: 'error' } }));
     } finally {
       setUploadingFile(false);
       e.target.value = "";
@@ -202,15 +202,15 @@ export default function AdminProductPage() {
             });
           }
         }
-        alert("Thêm sản phẩm mới cùng với ảnh phụ và các biến thể thành công!");
+        window.dispatchEvent(new CustomEvent('showToast', { detail: { message: "Thêm sản phẩm mới cùng với ảnh phụ và các biến thể thành công!", type: 'success' } }));
         setShowModal(false);
       } else {
-        alert("Cập nhật sản phẩm thành công!");
+        window.dispatchEvent(new CustomEvent('showToast', { detail: { message: "Cập nhật sản phẩm thành công!", type: 'success' } }));
         setShowModal(false);
       }
       loadProducts();
     } else {
-      alert(res.message || "Thao tác thất bại!");
+      window.dispatchEvent(new CustomEvent('showToast', { detail: { message: res.message || "Thao tác thất bại!", type: 'error' } }));
     }
     setSubmitting(false);
   };
@@ -222,12 +222,12 @@ export default function AdminProductPage() {
 
   const handleSaveProductClick = () => {
     if (!formData.name || !formData.name.trim()) {
-      alert("Vui lòng điền Tên sản phẩm ở tab Thông tin chung!");
+      window.dispatchEvent(new CustomEvent('showToast', { detail: { message: "Vui lòng điền Tên sản phẩm ở tab Thông tin chung!", type: 'warning' } }));
       setActiveTabInModal("basic");
       return;
     }
     if (!formData.price || Number(formData.price) <= 0) {
-      alert("Vui lòng điền Giá bán gốc hợp lệ ở tab Thông tin chung!");
+      window.dispatchEvent(new CustomEvent('showToast', { detail: { message: "Vui lòng điền Giá bán gốc hợp lệ ở tab Thông tin chung!", type: 'warning' } }));
       setActiveTabInModal("basic");
       return;
     }
@@ -240,20 +240,20 @@ export default function AdminProductPage() {
       return;
     const res = await ProductService.delete(id);
     if (res.success) {
-      alert("Đã chuyển sản phẩm vào Thùng rác!");
+      window.dispatchEvent(new CustomEvent('showToast', { detail: { message: "Đã chuyển sản phẩm vào Thùng rác!", type: 'success' } }));
       loadProducts();
     } else {
-      alert(res.message || "Xóa thất bại!");
+      window.dispatchEvent(new CustomEvent('showToast', { detail: { message: res.message || "Xóa thất bại!", type: 'error' } }));
     }
   };
   // Xử lý khôi phục sản phẩm đã xóa mềm
   const handleRestore = async (id) => {
     const res = await ProductService.restore(id);
     if (res.success) {
-      alert("Khôi phục sản phẩm thành công!");
+      window.dispatchEvent(new CustomEvent('showToast', { detail: { message: "Khôi phục sản phẩm thành công!", type: 'success' } }));
       loadProducts();
     } else {
-      alert(res.message || "Khôi phục thất bại!");
+      window.dispatchEvent(new CustomEvent('showToast', { detail: { message: res.message || "Khôi phục thất bại!", type: 'error' } }));
     }
   };
   // Xử lý xóa vĩnh viễn sản phẩm
@@ -266,10 +266,10 @@ export default function AdminProductPage() {
       return;
     const res = await ProductService.hardDelete(id);
     if (res.success) {
-      alert("Đã xóa vĩnh viễn sản phẩm!");
+      window.dispatchEvent(new CustomEvent('showToast', { detail: { message: "Đã xóa vĩnh viễn sản phẩm!", type: 'success' } }));
       loadProducts();
     } else {
-      alert(res.message || "Xóa vĩnh viễn thất bại!");
+      window.dispatchEvent(new CustomEvent('showToast', { detail: { message: res.message || "Xóa vĩnh viễn thất bại!", type: 'error' } }));
     }
   };
   // ==========================================
@@ -305,21 +305,21 @@ export default function AdminProductPage() {
             ...prev,
             { id: "temp_" + Date.now(), image_url: data.url },
           ]);
-          alert("Thêm ảnh phụ thành công!");
+          window.dispatchEvent(new CustomEvent('showToast', { detail: { message: "Thêm ảnh phụ thành công!", type: 'success' } }));
         } else {
           // Thêm vào database
           const addRes = await ProductService.addExtraImage(selectedExtraProduct.id, data.url);
           if (addRes.success) {
             loadProductExtra(selectedExtraProduct.id);
-            alert("Thêm ảnh phụ thành công!");
+            window.dispatchEvent(new CustomEvent('showToast', { detail: { message: "Thêm ảnh phụ thành công!", type: 'success' } }));
           }
         }
       } else {
-        alert(data.message || "Upload ảnh phụ thất bại!");
+        window.dispatchEvent(new CustomEvent('showToast', { detail: { message: data.message || "Upload ảnh phụ thất bại!", type: 'error' } }));
       }
     } catch (err) {
       console.error(err);
-      alert("Lỗi tải ảnh lên máy chủ!");
+      window.dispatchEvent(new CustomEvent('showToast', { detail: { message: "Lỗi tải ảnh lên máy chủ!", type: 'error' } }));
     } finally {
       setUploadingExtraFile(false);
       e.target.value = "";
@@ -334,15 +334,15 @@ export default function AdminProductPage() {
         { id: "temp_" + Date.now(), image_url: newImageUrl },
       ]);
       setNewImageUrl("");
-      alert("Thêm ảnh phụ thành công!");
+      window.dispatchEvent(new CustomEvent('showToast', { detail: { message: "Thêm ảnh phụ thành công!", type: 'success' } }));
     } else {
       const res = await ProductService.addExtraImage(selectedExtraProduct.id, newImageUrl);
       if (res.success) {
         loadProductExtra(selectedExtraProduct.id);
         setNewImageUrl("");
-        alert("Thêm ảnh phụ thành công!");
+        window.dispatchEvent(new CustomEvent('showToast', { detail: { message: "Thêm ảnh phụ thành công!", type: 'success' } }));
       } else {
-        alert(res.message || "Thêm ảnh phụ thất bại!");
+        window.dispatchEvent(new CustomEvent('showToast', { detail: { message: res.message || "Thêm ảnh phụ thất bại!", type: 'error' } }));
       }
     }
   };
@@ -355,7 +355,7 @@ export default function AdminProductPage() {
       if (res.success) {
         loadProductExtra(selectedExtraProduct.id);
       } else {
-        alert(res.message || "Xóa ảnh phụ thất bại!");
+        window.dispatchEvent(new CustomEvent('showToast', { detail: { message: res.message || "Xóa ảnh phụ thất bại!", type: 'error' } }));
       }
     }
   };
@@ -404,11 +404,11 @@ export default function AdminProductPage() {
           updated[index].image = data.url;
           return updated;
         });
-        alert("Tải ảnh biến thể thành công!");
+        window.dispatchEvent(new CustomEvent('showToast', { detail: { message: "Tải ảnh biến thể thành công!", type: 'success' } }));
       }
     } catch (err) {
       console.error(err);
-      alert("Lỗi khi upload ảnh biến thể!");
+      window.dispatchEvent(new CustomEvent('showToast', { detail: { message: "Lỗi khi upload ảnh biến thể!", type: 'error' } }));
     } finally {
       e.target.value = "";
     }
@@ -420,7 +420,7 @@ export default function AdminProductPage() {
       (v) => v.color.trim() !== "" || v.size.trim() !== "",
     );
     if (validVariants.length === 0) {
-      alert("Vui lòng điền Màu sắc hoặc Kích cỡ cho ít nhất một biến thể!");
+      window.dispatchEvent(new CustomEvent('showToast', { detail: { message: "Vui lòng điền Màu sắc hoặc Kích cỡ cho ít nhất một biến thể!", type: 'warning' } }));
       return;
     }
     if (modalType === "add") {
@@ -442,9 +442,7 @@ export default function AdminProductPage() {
         { color: "", size: "", price: "", stock: "0", image: "" },
       ]);
       setFocusedRow({ index: 0, field: "" });
-      alert(
-        `Đã lưu thành công ${validVariants.length} biến thể vào danh sách chờ!`,
-      );
+      window.dispatchEvent(new CustomEvent('showToast', { detail: { message: `Đã lưu thành công ${validVariants.length} biến thể vào danh sách chờ!`, type: 'success' } }));
     } else {
       let successCount = 0;
       let failCount = 0;
@@ -469,13 +467,9 @@ export default function AdminProductPage() {
           { color: "", size: "", price: "", stock: "0", image: "" },
         ]);
         setFocusedRow({ index: 0, field: "" });
-        alert(
-          `Đã lưu thành công ${successCount} biến thể!${
-            failCount > 0 ? ` (Thất bại ${failCount} biến thể)` : ""
-          }`,
-        );
+        window.dispatchEvent(new CustomEvent('showToast', { detail: { message: `Đã lưu thành công ${successCount} biến thể!${failCount > 0 ? ` (Thất bại ${failCount} biến thể)` : ""}`, type: 'success' } }));
       } else {
-        alert("Lưu các biến thể thất bại!");
+        window.dispatchEvent(new CustomEvent('showToast', { detail: { message: "Lưu các biến thể thất bại!", type: 'error' } }));
       }
     }
   };
@@ -491,7 +485,7 @@ export default function AdminProductPage() {
         setSelectedVariantIds((prev) => prev.filter((x) => x !== variantId));
         loadProductExtra(selectedExtraProduct.id);
       } else {
-        alert(res.message || "Xóa biến thể thất bại!");
+        window.dispatchEvent(new CustomEvent('showToast', { detail: { message: res.message || "Xóa biến thể thất bại!", type: 'error' } }));
       }
     }
   };

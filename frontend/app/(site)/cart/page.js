@@ -284,7 +284,7 @@ export default function CartPage() {
                 <div className="bg-white border border-slate-100 rounded-3xl p-12 shadow-sm">
                     <span className="text-5xl block mb-4">🛒</span>
                     <h1 className="text-2xl font-bold text-slate-800 mb-2">Bạn chưa đăng nhập</h1>
-                    <p className="text-slate-500 mb-6">Đăng nhập tài khoản để quản lý giỏ hàng và thực hiện mua sắm tiện lợi hơn.</p>
+                    <p className="text-slate-500 mb-6">Vui lòng đăng nhập để trải nghiệm trọn vẹn dịch vụ của cửa hàng!</p>
                     <Link href="/login" className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-bold shadow-md transition-all inline-block">
                         Đăng Nhập Ngay
                     </Link>

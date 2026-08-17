@@ -4,10 +4,10 @@ const crypto = require('crypto');
 const db = require('../config/db');
 
 // VNPAY Sandbox Configuration
-const tmnCode = '2QX1X161';
-const hashSecret = '99797779777777777777777777777777';
-const vnpUrl = 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html';
-const returnUrl = 'http://localhost:5000/api/payment/vnpay_return';
+const tmnCode = process.env.VNP_TMN_CODE || '2QX1X161';
+const hashSecret = process.env.VNP_HASH_SECRET || '99797779777777777777777777777777';
+const vnpUrl = process.env.VNP_URL || 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html';
+const returnUrl = process.env.VNP_RETURN_URL || 'http://localhost:5000/api/payment/vnpay_return';
 
 // Pure JS Date Formatter (YYYYMMDDHHmmss)
 function getVnpayDateFormat(date) {
@@ -26,7 +26,7 @@ function sortObject(obj) {
     let str = [];
     let key;
     for (key in obj) {
-        if (obj.hasOwnProperty(key)) {
+        if (Object.prototype.hasOwnProperty.call(obj, key)) {
             str.push(encodeURIComponent(key));
         }
     }
@@ -39,6 +39,7 @@ function sortObject(obj) {
 
 // 1. POST /api/payment/create_payment_url -> Tạo đường dẫn thanh toán VNPAY
 router.post('/create_payment_url', async (req, res) => {
+    console.log('=== VNPAY Request Params ===', { tmnCode, hashSecret, vnpUrl });
     try {
         const { orderId, amount, ipAddr } = req.body;
         if (!orderId || !amount) {

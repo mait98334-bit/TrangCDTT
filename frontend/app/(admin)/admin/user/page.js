@@ -71,12 +71,12 @@ export default function AdminUserPage() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!formData.name || !formData.email) {
-            alert('Vui lòng nhập tên và email!');
+            window.dispatchEvent(new CustomEvent('showToast', { detail: { message: 'Vui lòng nhập tên và email!', type: 'warning' } }));
             return;
         }
 
         if (modalType === 'add' && !formData.password) {
-            alert('Vui lòng nhập mật khẩu cho tài khoản mới!');
+            window.dispatchEvent(new CustomEvent('showToast', { detail: { message: 'Vui lòng nhập mật khẩu cho tài khoản mới!', type: 'warning' } }));
             return;
         }
 
@@ -101,11 +101,11 @@ export default function AdminUserPage() {
         setSubmitting(false);
 
         if (res.success) {
-            alert(modalType === 'add' ? 'Tạo tài khoản mới thành công!' : 'Cập nhật tài khoản thành công!');
+            window.dispatchEvent(new CustomEvent('showToast', { detail: { message: modalType === 'add' ? 'Tạo tài khoản mới thành công!' : 'Cập nhật tài khoản thành công!', type: 'success' } }));
             setShowModal(false);
             loadUsers();
         } else {
-            alert(res.message || 'Thao tác thất bại!');
+            window.dispatchEvent(new CustomEvent('showToast', { detail: { message: res.message || 'Thao tác thất bại!', type: 'error' } }));
         }
     };
 
@@ -116,10 +116,10 @@ export default function AdminUserPage() {
         const res = await UserService.delete(id);
 
         if (res.success) {
-            alert('Đã vô hiệu hóa tài khoản và chuyển vào Thùng rác!');
+            window.dispatchEvent(new CustomEvent('showToast', { detail: { message: 'Đã vô hiệu hóa tài khoản và chuyển vào Thùng rác!', type: 'success' } }));
             loadUsers();
         } else {
-            alert(res.message || 'Khóa tài khoản thất bại!');
+            window.dispatchEvent(new CustomEvent('showToast', { detail: { message: res.message || 'Khóa tài khoản thất bại!', type: 'error' } }));
         }
     };
 
@@ -128,10 +128,10 @@ export default function AdminUserPage() {
         const res = await UserService.restore(id);
 
         if (res.success) {
-            alert('Khôi phục tài khoản thành công!');
+            window.dispatchEvent(new CustomEvent('showToast', { detail: { message: 'Khôi phục tài khoản thành công!', type: 'success' } }));
             loadUsers();
         } else {
-            alert(res.message || 'Khôi phục tài khoản thất bại!');
+            window.dispatchEvent(new CustomEvent('showToast', { detail: { message: res.message || 'Khôi phục tài khoản thất bại!', type: 'error' } }));
         }
     };
 
@@ -142,10 +142,10 @@ export default function AdminUserPage() {
         const res = await UserService.hardDelete(id);
 
         if (res.success) {
-            alert('Đã xóa vĩnh viễn tài khoản khỏi hệ thống!');
+            window.dispatchEvent(new CustomEvent('showToast', { detail: { message: 'Đã xóa vĩnh viễn tài khoản khỏi hệ thống!', type: 'success' } }));
             loadUsers();
         } else {
-            alert(res.message || 'Xóa vĩnh viễn tài khoản thất bại!');
+            window.dispatchEvent(new CustomEvent('showToast', { detail: { message: res.message || 'Xóa vĩnh viễn tài khoản thất bại!', type: 'error' } }));
         }
     };
 

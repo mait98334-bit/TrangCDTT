@@ -8,6 +8,7 @@ export default function AdminLayout({ children }) {
     const pathname = usePathname();
     const [authorized, setAuthorized] = useState(false);
     const [mounted, setMounted] = useState(false);
+    const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
 
     useEffect(() => {
         setMounted(true);
@@ -29,6 +30,21 @@ export default function AdminLayout({ children }) {
             }
         }
     }, [router]);
+
+    useEffect(() => {
+        const handleShowToast = (e) => {
+            setToast({
+                show: true,
+                message: e.detail?.message || 'Thao tác thành công!',
+                type: e.detail?.type || 'success'
+            });
+            setTimeout(() => {
+                setToast(prev => ({ ...prev, show: false }));
+            }, 2500);
+        };
+        window.addEventListener('showToast', handleShowToast);
+        return () => window.removeEventListener('showToast', handleShowToast);
+    }, []);
 
     const menuItems = [
         { href: '/admin', label: 'Tổng quan (Dashboard)', icon: '📊' },
@@ -110,6 +126,20 @@ export default function AdminLayout({ children }) {
                     {children}
                 </main>
             </div>
+
+            {/* Custom Global Toast Notification for Admin */}
+            {toast.show && (
+                <div className={`fixed bottom-5 right-5 z-[9999] px-4 py-3 rounded-2xl shadow-xl border text-xs font-bold transition-all transform animate-in slide-in-from-bottom-5 duration-300 flex items-center gap-2 ${
+                    toast.type === 'error' 
+                        ? 'bg-rose-50 border-rose-150 text-rose-800' 
+                        : toast.type === 'warning'
+                        ? 'bg-amber-50 border-amber-150 text-amber-800'
+                        : 'bg-emerald-50 border-emerald-150 text-emerald-800'
+                }`}>
+                    <span>{toast.type === 'error' ? '❌' : toast.type === 'warning' ? '⚠️' : '✅'}</span>
+                    <span>{toast.message}</span>
+                </div>
+            )}
         </div>
     );
 }

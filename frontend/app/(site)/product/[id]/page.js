@@ -165,17 +165,17 @@ export default function ProductDetailPage({ params }) {
     // Xử lý thêm vào giỏ hàng
     const handleAddToCart = async () => {
         if (!currentUser) {
-            alert('Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng!');
+            window.dispatchEvent(new CustomEvent('showToast', { detail: { message: 'Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng!', type: 'warning' } }));
             return;
         }
 
         if (extraData.variants.length > 0) {
             if (!selectedVariant) {
-                alert('Vui lòng chọn màu sắc và kích cỡ!');
+                window.dispatchEvent(new CustomEvent('showToast', { detail: { message: 'Vui lòng chọn màu sắc và kích cỡ!', type: 'warning' } }));
                 return;
             }
             if (selectedVariant.stock <= 0) {
-                alert('Xin lỗi, phiên bản sản phẩm này hiện đã hết hàng!');
+                window.dispatchEvent(new CustomEvent('showToast', { detail: { message: 'Xin lỗi, phiên bản sản phẩm này hiện đã hết hàng!', type: 'warning' } }));
                 return;
             }
         }
@@ -188,7 +188,7 @@ export default function ProductDetailPage({ params }) {
             window.dispatchEvent(new CustomEvent('cartToast', { detail: { message: 'Đã thêm sản phẩm vào giỏ hàng! 🛒' } }));
             window.dispatchEvent(new Event('cartUpdate'));
         } else {
-            alert(res.message || 'Thêm vào giỏ hàng thất bại!');
+            window.dispatchEvent(new CustomEvent('showToast', { detail: { message: res.message || 'Thêm vào giỏ hàng thất bại!', type: 'error' } }));
         }
     };
 
@@ -196,11 +196,11 @@ export default function ProductDetailPage({ params }) {
     const handleSubmitReview = async (e) => {
         e.preventDefault();
         if (!currentUser) {
-            alert('Vui lòng đăng nhập để viết đánh giá!');
+            window.dispatchEvent(new CustomEvent('showToast', { detail: { message: 'Vui lòng đăng nhập để viết đánh giá!', type: 'warning' } }));
             return;
         }
         if (!newComment.trim()) {
-            alert('Vui lòng nhập nội dung đánh giá!');
+            window.dispatchEvent(new CustomEvent('showToast', { detail: { message: 'Vui lòng nhập nội dung đánh giá!', type: 'warning' } }));
             return;
         }
 
@@ -214,7 +214,7 @@ export default function ProductDetailPage({ params }) {
         setSubmittingReview(false);
 
         if (res.success) {
-            alert('Cảm ơn bạn đã gửi đánh giá! ⭐');
+            window.dispatchEvent(new CustomEvent('showToast', { detail: { message: 'Cảm ơn bạn đã gửi đánh giá! ⭐', type: 'success' } }));
             setNewComment('');
             // Load lại danh sách đánh giá
             const reviewsRes = await ReviewService.getByProductId(productId);
@@ -222,7 +222,7 @@ export default function ProductDetailPage({ params }) {
                 setReviews(reviewsRes.data);
             }
         } else {
-            alert(res.message || 'Không thể gửi đánh giá!');
+            window.dispatchEvent(new CustomEvent('showToast', { detail: { message: res.message || 'Không thể gửi đánh giá!', type: 'error' } }));
         }
     };
 

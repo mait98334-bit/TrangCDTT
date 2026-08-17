@@ -20,6 +20,7 @@ export default function LoginPage() {
             if (res.success) {
                 // Lưu thông tin user vào localStorage để quản lý phân quyền
                 localStorage.setItem('user', JSON.stringify(res.data));
+                window.dispatchEvent(new Event('cartUpdate'));
 
                 // Phân quyền: nếu là admin (ví dụ role === 'admin' hoặc kiểm tra email/id)
                 if (res.data.role === 'admin' || res.data.email.includes('admin')) {
