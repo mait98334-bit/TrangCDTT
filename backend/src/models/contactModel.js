@@ -4,8 +4,8 @@ const Contact = {
     // Lấy tất cả liên hệ (có hỗ trợ includeDeleted cho Admin)
     getAll: async (includeDeleted = false) => {
         const query = includeDeleted
-            ? 'SELECT * FROM contacts ORDER BY id ASC'
-            : 'SELECT * FROM contacts WHERE is_deleted = 0 OR is_deleted IS NULL ORDER BY id ASC';
+            ? 'SELECT c.*, p.name AS product_name FROM contacts c LEFT JOIN products p ON c.product_id = p.id ORDER BY c.id DESC'
+            : 'SELECT c.*, p.name AS product_name FROM contacts c LEFT JOIN products p ON c.product_id = p.id WHERE c.is_deleted = 0 OR c.is_deleted IS NULL ORDER BY c.id DESC';
         const [rows] = await db.query(query);
         return rows;
     },
@@ -13,18 +13,18 @@ const Contact = {
     // Lấy chi tiết liên hệ theo ID
     getById: async (id, includeDeleted = false) => {
         const query = includeDeleted
-            ? 'SELECT * FROM contacts WHERE id = ?'
-            : 'SELECT * FROM contacts WHERE id = ? AND (is_deleted = 0 OR is_deleted IS NULL)';
+            ? 'SELECT c.*, p.name AS product_name FROM contacts c LEFT JOIN products p ON c.product_id = p.id WHERE c.id = ?'
+            : 'SELECT c.*, p.name AS product_name FROM contacts c LEFT JOIN products p ON c.product_id = p.id WHERE c.id = ? AND (c.is_deleted = 0 OR c.is_deleted IS NULL)';
         const [rows] = await db.query(query, [id]);
         return rows[0];
     },
 
     // Gửi liên hệ mới từ phía khách hàng (Frontend gửi lên)
     create: async (data) => {
-        const { name, email, phone, message } = data;
+        const { name, email, phone, message, product_id } = data;
         const [result] = await db.query(
-            'INSERT INTO contacts (name, email, phone, message, is_deleted) VALUES (?, ?, ?, ?, 0)',
-            [name, email, phone, message]
+            'INSERT INTO contacts (name, email, phone, message, product_id, is_deleted) VALUES (?, ?, ?, ?, ?, 0)',
+            [name, email, phone, message, product_id || null]
         );
         return result;
     },

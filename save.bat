@@ -1,33 +1,32 @@
 @echo off
-chcp 65001 > nul
 echo ==========================================
-echo [1/4] Đang sao lưu cơ sở dữ liệu ra database.sql...
+echo [1/4] Dang sao luu co so du lieu ra database.sql...
 "C:\xampp\mysql\bin\mysqldump.exe" -u root --default-character-set=utf8mb4 trangcdtt > "%~dp0database.sql"
 if %ERRORLEVEL% NEQ 0 (
-    echo [Lỗi] Không thể sao lưu cơ sở dữ liệu! Hãy chắc chắn XAMPP MySQL đang chạy.
+    echo [Loi] Khong the sao luu co so du lieu! Hay chac chan XAMPP MySQL dang chay.
     pause
     exit /b %ERRORLEVEL%
 )
-echo Sao lưu CSDL thành công!
+echo Sao luu CSDL thanh cong!
 
 echo ==========================================
-echo [2/4] Đang thêm các file thay đổi vào Git...
+echo [2/4] Dang them cac file thay doi vao Git...
 git add .
 
 echo ==========================================
-echo [3/4] Đang tạo bản ghi commit...
-set /p msg="Nhập nội dung commit (Nhấn Enter để dùng mặc định: 'Cập nhật database và code'): "
-if "%msg%"=="" set msg="Cập nhật database và code"
+echo [3/4] Dang tao ban ghi commit...
+set /p msg="Nhap noi dung commit (Nhan Enter de dung mac dinh: 'Cap nhat database va code'): "
+if "%msg%"=="" set msg="Cap nhat database va code"
 git commit -m "%msg%"
 
 echo ==========================================
-echo [4/4] Đang đẩy (push) mã nguồn lên GitHub...
+echo [4/4] Dang day (push) ma nguon len GitHub...
 git push
 if %ERRORLEVEL% NEQ 0 (
-    echo [Lỗi] Không thể push lên GitHub! Hãy kiểm tra kết nối mạng hoặc remote origin.
+    echo [Loi] Khong the push len GitHub!
     pause
     exit /b %ERRORLEVEL%
 )
 echo ==========================================
-echo ĐÃ HOÀN THÀNH SAO LƯU VÀ ĐẨY LÊN GITHUB THÀNH CÔNG!
+echo DA HOAN THANH SAO LUU VA DAY LEN GITHUB THANH CONG!
 pause

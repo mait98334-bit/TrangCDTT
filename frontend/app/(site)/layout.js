@@ -5,6 +5,7 @@ import '@/app/globals.css';
 import { CategoryService } from '@/services/categoryService';
 import { BrandService } from '@/services/brandService';
 import { CartService } from '@/services/cartService';
+import ChatBubble from '@/components/ChatBubble';
 
 export default function SiteLayout({ children }) {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -380,6 +381,9 @@ export default function SiteLayout({ children }) {
                     <span>{toast.message}</span>
                 </div>
             )}
+
+            {/* Khung chat tư vấn nổi */}
+            <ChatBubble />
         </div>
     );
 }

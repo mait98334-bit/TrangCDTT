@@ -38,10 +38,10 @@ export default function AdminContactPage() {
         const res = await ContactService.delete(id);
 
         if (res.success) {
-            alert('Đã chuyển liên hệ vào Thùng rác!');
+            window.dispatchEvent(new CustomEvent('showToast', { detail: { message: 'Đã chuyển liên hệ vào Thùng rác!', type: 'success' } }));
             loadContacts();
         } else {
-            alert(res.message || 'Xóa liên hệ thất bại!');
+            window.dispatchEvent(new CustomEvent('showToast', { detail: { message: res.message || 'Xóa liên hệ thất bại!', type: 'error' } }));
         }
     };
 
@@ -50,10 +50,10 @@ export default function AdminContactPage() {
         const res = await ContactService.restore(id);
 
         if (res.success) {
-            alert('Khôi phục liên hệ thành công!');
+            window.dispatchEvent(new CustomEvent('showToast', { detail: { message: 'Khôi phục liên hệ thành công!', type: 'success' } }));
             loadContacts();
         } else {
-            alert(res.message || 'Khôi phục liên hệ thất bại!');
+            window.dispatchEvent(new CustomEvent('showToast', { detail: { message: res.message || 'Khôi phục liên hệ thất bại!', type: 'error' } }));
         }
     };
 
@@ -64,10 +64,10 @@ export default function AdminContactPage() {
         const res = await ContactService.hardDelete(id);
 
         if (res.success) {
-            alert('Đã xóa vĩnh viễn liên hệ khỏi hệ thống!');
+            window.dispatchEvent(new CustomEvent('showToast', { detail: { message: 'Đã xóa vĩnh viễn liên hệ khỏi hệ thống!', type: 'success' } }));
             loadContacts();
         } else {
-            alert(res.message || 'Xóa vĩnh viễn thất bại!');
+            window.dispatchEvent(new CustomEvent('showToast', { detail: { message: res.message || 'Xóa vĩnh viễn thất bại!', type: 'error' } }));
         }
     };
 
@@ -125,6 +125,7 @@ export default function AdminContactPage() {
                             <th className="p-4 font-bold text-slate-800">Khách hàng</th>
                             <th className="p-4 font-bold text-slate-800">Email</th>
                             <th className="p-4 font-bold text-slate-800">Số điện thoại</th>
+                            <th className="p-4 font-bold text-slate-800">Sản phẩm liên kết</th>
                             <th className="p-4 font-bold text-slate-800">Nội dung liên hệ</th>
                             <th className="p-4 font-bold text-slate-800">Ngày gửi</th>
                             <th className="p-4 font-bold text-slate-800 text-center">Hành động</th>
@@ -133,7 +134,7 @@ export default function AdminContactPage() {
                     <tbody className="divide-y divide-gray-100 text-sm">
                         {currentContacts.length === 0 ? (
                             <tr>
-                                <td colSpan="7" className="p-6 text-center text-gray-500">
+                                <td colSpan="8" className="p-6 text-center text-gray-500">
                                     {activeTab === 'trash' ? 'Thùng rác trống.' : 'Chưa nhận được tin nhắn liên hệ nào.'}
                                 </td>
                             </tr>
@@ -144,6 +145,20 @@ export default function AdminContactPage() {
                                     <td className="p-4 font-bold text-gray-800">{item.name}</td>
                                     <td className="p-4 text-gray-600">{item.email}</td>
                                     <td className="p-4 text-gray-600">{item.phone || 'Chưa cung cấp'}</td>
+                                    <td className="p-4">
+                                        {item.product_id ? (
+                                            <a 
+                                                href={`http://localhost:3000/product/${item.product_id}`} 
+                                                target="_blank" 
+                                                className="text-indigo-600 font-bold hover:underline line-clamp-1 max-w-[150px]"
+                                                title={item.product_name}
+                                            >
+                                                📦 #{item.product_id} - {item.product_name}
+                                            </a>
+                                        ) : (
+                                            <span className="text-gray-400">Không</span>
+                                        )}
+                                    </td>
                                     <td className="p-4 text-gray-500 max-w-[200px] truncate">{item.message}</td>
                                     <td className="p-4 text-gray-500">
                                         {new Date(item.created_at).toLocaleDateString('vi-VN')}
@@ -276,6 +291,18 @@ export default function AdminContactPage() {
                                     <span className="block text-xs font-semibold text-gray-400">Email liên hệ</span>
                                     <span className="font-bold text-indigo-600">{selectedContact.email}</span>
                                 </div>
+                                {selectedContact.product_id && (
+                                    <div className="col-span-2 pt-2 border-t border-gray-100">
+                                        <span className="block text-xs font-semibold text-gray-400">Sản phẩm liên kết tư vấn</span>
+                                        <a
+                                            href={`http://localhost:3000/product/${selectedContact.product_id}`}
+                                            target="_blank"
+                                            className="font-bold text-emerald-600 hover:underline inline-flex items-center gap-1.5"
+                                        >
+                                            📦 #{selectedContact.product_id} - {selectedContact.product_name} ↗
+                                        </a>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="space-y-1.5">

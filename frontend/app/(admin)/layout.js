@@ -56,7 +56,8 @@ export default function AdminLayout({ children }) {
         { href: '/admin/post', label: 'Bài viết (Posts)', icon: '📰' },
         { href: '/admin/review', label: 'Đánh giá (Reviews)', icon: '⭐' },
         { href: '/admin/cart', label: 'Giỏ hàng (Carts)', icon: '🛒' },
-        { href: '/admin/contact', label: 'Liên hệ (Contacts)', icon: '💬' },
+        { href: '/admin/contact', label: 'Liên hệ (Contacts)', icon: '✉️' },
+        { href: '/admin/chat', label: 'Tư vấn (Live Chat)', icon: '💬' },
     ];
 
     const isActive = (href) => {

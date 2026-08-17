@@ -22,7 +22,7 @@ exports.getContacts = async (req, res) => {
 // 2. Khách gửi liên hệ mới
 exports.createContact = async (req, res) => {
     try {
-        const { name, email, phone, message } = req.body;
+        const { name, email, phone, message, product_id } = req.body;
 
         if (!name || !email || !message) {
             return res.status(400).json({
@@ -31,12 +31,12 @@ exports.createContact = async (req, res) => {
             });
         }
 
-        const result = await Contact.create({ name, email, phone, message });
+        const result = await Contact.create({ name, email, phone, message, product_id });
 
         res.status(201).json({
             success: true,
             message: 'Gửi liên hệ thành công! Chúng tôi sẽ phản hồi sớm nhất.',
-            data: { id: result.insertId, name, email, phone, message }
+            data: { id: result.insertId, name, email, phone, message, product_id }
         });
     } catch (error) {
         res.status(500).json({

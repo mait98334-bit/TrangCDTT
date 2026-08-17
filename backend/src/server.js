@@ -16,6 +16,7 @@ const productExtraRoutes = require('./routes/productExtraRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
 const userRoutes = require('./routes/userRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
+const chatRoutes = require('./routes/chatRoutes');
 
 const app = express();
 
@@ -51,6 +52,7 @@ app.use('/api/products', productExtraRoutes); // Route này sẽ chạy kiểu h
 app.use('/api/upload', uploadRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/payment', paymentRoutes);
+app.use('/api/chat', chatRoutes);
 
 
 // Xử lý Route không tồn tại (404 Not Found)

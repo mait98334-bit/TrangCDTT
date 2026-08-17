@@ -488,6 +488,15 @@ export default function ProductDetailPage({ params }) {
                                         <span>🛒</span>
                                         <span>{addingToCart ? 'Đang thêm vào giỏ...' : 'Thêm vào giỏ hàng'}</span>
                                     </button>
+
+                                    {/* Tư vấn sản phẩm Button */}
+                                    <a
+                                        href={`/contact?productId=${productId}`}
+                                        className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-bold px-6 py-4 rounded-xl shadow-sm hover:-translate-y-0.5 transition-all text-center flex items-center justify-center gap-2 cursor-pointer text-xs"
+                                    >
+                                        <span>💬</span>
+                                        <span>Tư vấn sản phẩm</span>
+                                    </a>
                                 </div>
 
                                 {/* Extra trust features */}

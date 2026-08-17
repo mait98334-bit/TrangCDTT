@@ -1,8 +1,30 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { ContactService } from '@/services/contactService';
+import { ProductService } from '@/services/productService';
+import { useSearchParams } from 'next/navigation';
+import { getImageUrl } from '@/services/imageHelper';
 
 export default function ContactPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-[60vh] flex items-center justify-center">
+                <div className="text-center">
+                    <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="text-slate-500 font-medium">Đang tải biểu mẫu liên hệ...</p>
+                </div>
+            </div>
+        }>
+            <ContactForm />
+        </Suspense>
+    );
+}
+
+function ContactForm() {
+    const searchParams = useSearchParams();
+    const productId = searchParams.get('productId');
+    const [product, setProduct] = useState(null);
+
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -11,7 +33,32 @@ export default function ContactPage() {
     });
     const [submitting, setSubmitting] = useState(false);
 
-    // Gợi ý thông tin tài khoản đang đăng nhập
+    // Phát sự kiện hiển thị Toast
+    const showToast = (message, type = 'success') => {
+        window.dispatchEvent(new CustomEvent('showToast', {
+            detail: { message, type }
+        }));
+    };
+
+    // Load thông tin sản phẩm liên kết nếu có productId
+    useEffect(() => {
+        if (productId) {
+            ProductService.getById(productId).then(res => {
+                if (res.success) {
+                    setProduct(res.data);
+                    // Tự động điền nội dung mẫu
+                    setFormData(prev => ({
+                        ...prev,
+                        message: prev.message || `Tôi muốn nhận tư vấn thêm về sản phẩm: ${res.data.name} (Mã sản phẩm: #${res.data.id}).`
+                    }));
+                }
+            }).catch(err => {
+                console.error("Lỗi khi tải thông tin sản phẩm liên hệ:", err);
+            });
+        }
+    }, [productId]);
+
+    // Gợi ý thông tin tài khoản đang đăng nhập từ localStorage
     useEffect(() => {
         if (typeof window !== 'undefined') {
             const storedUser = localStorage.getItem('user');
@@ -34,16 +81,21 @@ export default function ContactPage() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!formData.name || !formData.email || !formData.message) {
-            alert('Vui lòng nhập đầy đủ Họ tên, Email và Nội dung lời nhắn!');
+            showToast('Vui lòng nhập đầy đủ Họ tên, Email và Nội dung lời nhắn!', 'warning');
             return;
         }
 
         setSubmitting(true);
-        const res = await ContactService.create(formData);
+        const payload = {
+            ...formData,
+            product_id: productId ? parseInt(productId, 10) : null
+        };
+        const res = await ContactService.create(payload);
         setSubmitting(false);
 
         if (res.success) {
-            alert(res.message || 'Gửi liên hệ thành công! Cửa hàng sẽ phản hồi bạn sớm nhất.');
+            showToast(res.message || 'Gửi liên hệ thành công! Cửa hàng sẽ phản hồi bạn sớm nhất.', 'success');
+            
             // Giữ lại thông tin tài khoản, chỉ xóa nội dung lời nhắn
             if (typeof window !== 'undefined') {
                 const storedUser = localStorage.getItem('user');
@@ -56,6 +108,7 @@ export default function ContactPage() {
                             phone: user.phone || '',
                             message: ''
                         });
+                        setProduct(null); // Clear sản phẩm sau khi gửi thành công
                         return;
                     } catch (e) {}
                 }
@@ -66,8 +119,9 @@ export default function ContactPage() {
                 phone: '',
                 message: ''
             });
+            setProduct(null);
         } else {
-            alert(res.message || 'Gửi liên hệ thất bại. Vui lòng thử lại!');
+            showToast(res.message || 'Gửi liên hệ thất bại. Vui lòng thử lại!', 'error');
         }
     };
 
@@ -95,6 +149,22 @@ export default function ContactPage() {
                             </p>
                         </div>
 
+                        {/* Thẻ hiển thị sản phẩm đang liên kết tư vấn */}
+                        {product && (
+                            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 flex gap-4 items-center">
+                                <img 
+                                    src={getImageUrl(product.image)} 
+                                    alt={product.name} 
+                                    className="w-16 h-16 object-cover rounded-xl bg-white"
+                                />
+                                <div className="text-xs">
+                                    <p className="font-bold text-white mb-0.5 line-clamp-1">{product.name}</p>
+                                    <p className="text-indigo-200 font-medium mb-1">Mã sản phẩm: #{product.id}</p>
+                                    <p className="text-rose-300 font-extrabold text-sm">{Number(product.price).toLocaleString('vi-VN')} đ</p>
+                                </div>
+                            </div>
+                        )}
+
                         <div className="space-y-3 pt-4 border-t border-indigo-500/30 text-xs sm:text-sm font-medium">
                             <p className="flex items-center gap-2">📍 <span className="text-indigo-100">Địa chỉ:</span> 127 Hồ Chí Minh, Việt Nam</p>
                             <p className="flex items-center gap-2">📞 <span className="text-indigo-100">Điện thoại:</span> 0912 345 678</p>
@@ -109,6 +179,27 @@ export default function ContactPage() {
                     <form onSubmit={handleSubmit} className="space-y-4 flex flex-col justify-between h-full">
                         <div className="space-y-4">
                             <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">GỬI LỜI NHẮN CHO SHOP</span>
+                            
+                            {product && (
+                                <div className="bg-indigo-50/50 border border-indigo-100 rounded-xl p-3.5 flex items-center justify-between">
+                                    <div className="text-xs">
+                                        <span className="text-indigo-600 font-bold">📌 Liên kết sản phẩm:</span>
+                                        <span className="font-semibold text-slate-700 ml-1.5 line-clamp-1">{product.name}</span>
+                                    </div>
+                                    <button 
+                                        type="button"
+                                        onClick={() => {
+                                            setProduct(null);
+                                            // Reset lời nhắn mẫu
+                                            setFormData(prev => ({ ...prev, message: '' }));
+                                        }}
+                                        className="text-slate-400 hover:text-slate-600 text-xs font-bold cursor-pointer"
+                                    >
+                                        Bỏ liên kết
+                                    </button>
+                                </div>
+                            )}
+
                             {/* Name */}
                             <div>
                                 <label className="block text-xs font-bold text-slate-500 mb-1">Họ tên của bạn *</label>
