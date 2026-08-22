@@ -105,6 +105,67 @@ export default function ChatBubble() {
         }
     }, []);
 
+    // 1.1 Lắng nghe sự kiện yêu cầu tư vấn sản phẩm trực tiếp từ thẻ sản phẩm
+    useEffect(() => {
+        const handleAdvice = async (e) => {
+            const { productId, productName } = e.detail;
+            setIsOpen(true);
+            setView('chat');
+
+            let currentSessionId = sessionId;
+            let currentSessions = sessions;
+
+            const storedUser = localStorage.getItem('user');
+            let currentUser = null;
+            if (storedUser) {
+                try { currentUser = JSON.parse(storedUser); } catch (err) {}
+            }
+
+            if (!currentSessionId) {
+                if (currentSessions.length > 0) {
+                    currentSessionId = currentSessions[currentSessions.length - 1].id;
+                    setSessionId(currentSessionId);
+                } else {
+                    const newId = currentUser 
+                        ? `user_${currentUser.id}_${Date.now()}` 
+                        : `guest_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+                    const newSession = {
+                        id: newId,
+                        title: `Cuộc trò chuyện #1`,
+                        createdAt: new Date().toISOString()
+                    };
+                    const updated = [newSession];
+                    setSessions(updated);
+                    saveStoredSessions(currentUser, updated);
+                    currentSessionId = newId;
+                    setSessionId(newId);
+                    currentSessions = updated;
+                }
+            }
+
+            const text = `Tôi cần tư vấn về sản phẩm: ${productName} (Mã: #${productId}).`;
+            const activeSession = currentSessions.find(s => s.id === currentSessionId) || { title: 'Cuộc trò chuyện #1' };
+            const displayName = `${senderName || 'Khách hàng'} (${activeSession.title || 'Cuộc trò chuyện'})`;
+
+            const res = await ChatService.sendMessage({
+                session_id: currentSessionId,
+                sender_name: displayName,
+                message: text,
+                is_admin: false
+            });
+
+            if (res.success) {
+                setMessages(prev => {
+                    if (prev.some(m => m.id === res.data.id)) return prev;
+                    return [...prev, res.data];
+                });
+            }
+        };
+
+        window.addEventListener('askProductAdvice', handleAdvice);
+        return () => window.removeEventListener('askProductAdvice', handleAdvice);
+    }, [sessionId, sessions, senderName]);
+
     // 2. Cuộn xuống tin nhắn mới nhất
     const scrollToBottom = () => {
         chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });

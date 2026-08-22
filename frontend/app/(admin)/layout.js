@@ -20,7 +20,7 @@ export default function AdminLayout({ children }) {
                 const user = JSON.parse(storedUser);
                 const isAdmin = user.role === 'admin' || (user.email && String(user.email).includes('admin'));
                 if (!isAdmin) {
-                    alert('Bạn không có quyền truy cập trang quản trị!');
+                    window.dispatchEvent(new CustomEvent('showToast', { detail: { message: 'Bạn không có quyền truy cập trang quản trị!', type: 'error' } }));
                     router.push('/');
                 } else {
                     setAuthorized(true);

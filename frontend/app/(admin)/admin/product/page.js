@@ -13,6 +13,14 @@ export default function AdminProductPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [submitting, setSubmitting] = useState(false);
   const [uploadingFile, setUploadingFile] = useState(false);
+
+  // Phát sự kiện hiển thị Toast
+  const showToast = (message, type = 'success') => {
+    window.dispatchEvent(new CustomEvent('showToast', {
+      detail: { message, type }
+    }));
+  };
+
   // Modal state (Thêm/Sửa sản phẩm)
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState("add"); // 'add' hoặc 'edit'
@@ -516,7 +524,7 @@ export default function AdminProductPage() {
         prev.filter((v) => !selectedVariantIds.includes(v.id)),
       );
       setSelectedVariantIds([]);
-      alert("Đã xóa các biến thể được chọn!");
+      showToast("Đã xóa các biến thể được chọn!", "success");
     } else {
       let successCount = 0;
       for (const id of selectedVariantIds) {
@@ -525,7 +533,7 @@ export default function AdminProductPage() {
       }
       setSelectedVariantIds([]);
       loadProductExtra(selectedExtraProduct.id);
-      alert(`Đã xóa thành công ${successCount} biến thể!`);
+      showToast(`Đã xóa thành công ${successCount} biến thể!`, "success");
     }
   };
   const startEditingVariant = (v) => {
@@ -559,7 +567,7 @@ export default function AdminProductPage() {
         }),
       );
       setEditingVariantId(null);
-      alert("Cập nhật biến thể thành công!");
+      showToast("Cập nhật biến thể thành công!", "success");
     } else {
       const res = await ProductService.updateVariant(id, {
         color: editingVariantData.color || null,
@@ -574,9 +582,9 @@ export default function AdminProductPage() {
       if (res.success) {
         setEditingVariantId(null);
         loadProductExtra(selectedExtraProduct.id);
-        alert("Cập nhật biến thể thành công!");
+        showToast("Cập nhật biến thể thành công!", "success");
       } else {
-        alert(res.message || "Cập nhật thất bại!");
+        showToast(res.message || "Cập nhật thất bại!", "error");
       }
     }
   };
@@ -587,11 +595,11 @@ export default function AdminProductPage() {
       const data = await ProductService.uploadImage(file);
       if (data.success) {
         setEditingVariantData((prev) => ({ ...prev, image: data.url }));
-        alert("Tải ảnh biến thể thành công!");
+        showToast("Tải ảnh biến thể thành công!", "success");
       }
     } catch (err) {
       console.error(err);
-      alert("Lỗi khi upload ảnh biến thể!");
+      showToast("Lỗi khi upload ảnh biến thể!", "error");
     } finally {
       e.target.value = "";
     }
@@ -622,7 +630,7 @@ export default function AdminProductPage() {
       setSelectedVariantIds([]);
       setShowBulkEditForm(false);
       setBulkEditData({ color: "", size: "", price: "", stock: "" });
-      alert(`Đã cập nhật hàng loạt thành công các biến thể!`);
+      showToast(`Đã cập nhật hàng loạt thành công các biến thể!`, "success");
     } else {
       let successCount = 0;
       for (const id of selectedVariantIds) {
@@ -649,7 +657,7 @@ export default function AdminProductPage() {
       setShowBulkEditForm(false);
       setBulkEditData({ color: "", size: "", price: "", stock: "" });
       loadProductExtra(selectedExtraProduct.id);
-      alert(`Đã cập nhật hàng loạt thành công ${successCount} biến thể!`);
+      showToast(`Đã cập nhật hàng loạt thành công ${successCount} biến thể!`, "success");
     }
   };
   if (loading)

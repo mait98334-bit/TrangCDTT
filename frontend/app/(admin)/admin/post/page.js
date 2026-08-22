@@ -12,6 +12,13 @@ export default function AdminPostPage() {
     const [activeTab, setActiveTab] = useState('active'); // 'active' hoặc 'trash'
     const [currentPage, setCurrentPage] = useState(1);
 
+    // Phát sự kiện hiển thị Toast
+    const showToast = (message, type = 'success') => {
+        window.dispatchEvent(new CustomEvent('showToast', {
+            detail: { message, type }
+        }));
+    };
+
     // Modal state
     const [showModal, setShowModal] = useState(false);
     const [modalType, setModalType] = useState('add'); // 'add' hoặc 'edit'
@@ -103,13 +110,13 @@ export default function AdminPostPage() {
                     ...prev,
                     image: data.url
                 }));
-                alert('Tải ảnh bài viết thành công!');
+                showToast('Tải ảnh bài viết thành công!', 'success');
             } else {
-                alert(data.message || 'Upload ảnh thất bại!');
+                showToast(data.message || 'Upload ảnh thất bại!', 'error');
             }
         } catch (err) {
             console.error(err);
-            alert('Lỗi khi upload ảnh bài viết!');
+            showToast('Lỗi khi upload ảnh bài viết!', 'error');
         } finally {
             setUploadingFile(false);
         }
@@ -119,7 +126,7 @@ export default function AdminPostPage() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!formData.title || !formData.content) {
-            alert('Vui lòng nhập tiêu đề và nội dung bài viết!');
+            showToast('Vui lòng nhập tiêu đề và nội dung bài viết!', 'warning');
             return;
         }
 
@@ -137,11 +144,11 @@ export default function AdminPostPage() {
         setSubmitting(false);
 
         if (res.success) {
-            alert(modalType === 'add' ? 'Thêm bài viết thành công!' : 'Cập nhật bài viết thành công!');
+            showToast(modalType === 'add' ? 'Thêm bài viết thành công!' : 'Cập nhật bài viết thành công!', 'success');
             setShowModal(false);
             loadPosts();
         } else {
-            alert(res.message || 'Thao tác thất bại!');
+            showToast(res.message || 'Thao tác thất bại!', 'error');
         }
     };
 
@@ -152,10 +159,10 @@ export default function AdminPostPage() {
         const res = await PostService.delete(id);
 
         if (res.success) {
-            alert('Đã chuyển bài viết vào Thùng rác!');
+            showToast('Đã chuyển bài viết vào Thùng rác!', 'success');
             loadPosts();
         } else {
-            alert(res.message || 'Xóa bài viết thất bại!');
+            showToast(res.message || 'Xóa bài viết thất bại!', 'error');
         }
     };
 
@@ -164,10 +171,10 @@ export default function AdminPostPage() {
         const res = await PostService.restore(id);
 
         if (res.success) {
-            alert('Khôi phục bài viết thành công!');
+            showToast('Khôi phục bài viết thành công!', 'success');
             loadPosts();
         } else {
-            alert(res.message || 'Khôi phục bài viết thất bại!');
+            showToast(res.message || 'Khôi phục bài viết thất bại!', 'error');
         }
     };
 
@@ -178,10 +185,10 @@ export default function AdminPostPage() {
         const res = await PostService.hardDelete(id);
 
         if (res.success) {
-            alert('Đã xóa vĩnh viễn bài viết khỏi hệ thống!');
+            showToast('Đã xóa vĩnh viễn bài viết khỏi hệ thống!', 'success');
             loadPosts();
         } else {
-            alert(res.message || 'Xóa bài viết vĩnh viễn thất bại!');
+            showToast(res.message || 'Xóa bài viết vĩnh viễn thất bại!', 'error');
         }
     };
 

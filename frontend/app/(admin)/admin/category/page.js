@@ -9,6 +9,13 @@ export default function AdminCategoryPage() {
     const [activeTab, setActiveTab] = useState('active'); // 'active' hoặc 'trash'
     const [currentPage, setCurrentPage] = useState(1);
 
+    // Phát sự kiện hiển thị Toast
+    const showToast = (message, type = 'success') => {
+        window.dispatchEvent(new CustomEvent('showToast', {
+            detail: { message, type }
+        }));
+    };
+
     // Modal state
     const [showModal, setShowModal] = useState(false);
     const [modalType, setModalType] = useState('add'); // 'add' hoặc 'edit'
@@ -87,7 +94,7 @@ export default function AdminCategoryPage() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!formData.name) {
-            alert('Vui lòng điền tên danh mục!');
+            showToast('Vui lòng điền tên danh mục!', 'warning');
             return;
         }
 
@@ -103,11 +110,11 @@ export default function AdminCategoryPage() {
         setSubmitting(false);
 
         if (res.success) {
-            alert(modalType === 'add' ? 'Thêm danh mục thành công!' : 'Cập nhật danh mục thành công!');
+            showToast(modalType === 'add' ? 'Thêm danh mục thành công!' : 'Cập nhật danh mục thành công!', 'success');
             setShowModal(false);
             loadCategories();
         } else {
-            alert(res.message || 'Thao tác thất bại!');
+            showToast(res.message || 'Thao tác thất bại!', 'error');
         }
     };
 
@@ -118,10 +125,10 @@ export default function AdminCategoryPage() {
         const res = await CategoryService.delete(id);
 
         if (res.success) {
-            alert('Đã chuyển danh mục vào Thùng rác!');
+            showToast('Đã chuyển danh mục vào Thùng rác!', 'success');
             loadCategories();
         } else {
-            alert(res.message || 'Xóa thất bại!');
+            showToast(res.message || 'Xóa thất bại!', 'error');
         }
     };
 
@@ -130,10 +137,10 @@ export default function AdminCategoryPage() {
         const res = await CategoryService.restore(id);
 
         if (res.success) {
-            alert('Khôi phục danh mục thành công!');
+            showToast('Khôi phục danh mục thành công!', 'success');
             loadCategories();
         } else {
-            alert(res.message || 'Khôi phục thất bại!');
+            showToast(res.message || 'Khôi phục thất bại!', 'error');
         }
     };
 
@@ -144,10 +151,10 @@ export default function AdminCategoryPage() {
         const res = await CategoryService.hardDelete(id);
 
         if (res.success) {
-            alert('Đã xóa vĩnh viễn danh mục khỏi hệ thống!');
+            showToast('Đã xóa vĩnh viễn danh mục khỏi hệ thống!', 'success');
             loadCategories();
         } else {
-            alert(res.message || 'Xóa vĩnh viễn thất bại!');
+            showToast(res.message || 'Xóa vĩnh viễn thất bại!', 'error');
         }
     };
 

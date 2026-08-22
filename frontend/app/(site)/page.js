@@ -11,6 +11,96 @@ import { CartService } from '@/services/cartService';
 
 export const dynamic = 'force-dynamic';
 
+const BrandLogo = ({ name, slug }) => {
+    const lowerSlug = (slug || name || '').toLowerCase();
+
+    // Nếu dùng hình ảnh logo chuẩn (khuyên dùng để giống thực tế nhất)
+    // Bạn có thể thay đường dẫn ảnh logo chuẩn vào đây nếu có sẵn trong thư mục public
+    if (lowerSlug.includes('nike')) {
+        return (
+            <span className="text-base font-black tracking-wider text-slate-950 group-hover:text-indigo-600 transition-colors font-sans uppercase">
+                NIKE
+            </span>
+        );
+    }
+    if (lowerSlug.includes('adidas')) {
+        return (
+            <span className="text-base font-black tracking-wider text-slate-950 group-hover:text-indigo-600 transition-colors font-sans uppercase">
+                ADIDAS
+            </span>
+        );
+    }
+    if (lowerSlug.includes('puma')) {
+        return (
+            <span className="text-base font-black tracking-widest text-slate-950 group-hover:text-indigo-600 transition-colors font-sans uppercase">
+                PUMA
+            </span>
+        );
+    }
+    if (lowerSlug.includes('jordan')) {
+        return (
+            <span className="text-[15px] font-black tracking-[0.15em] text-slate-950 group-hover:text-indigo-600 transition-colors font-sans uppercase">
+                JORDAN
+            </span>
+        );
+    }
+    if (lowerSlug.includes('balenciaga')) {
+        return (
+            <span className="text-[10px] font-black tracking-[0.25em] text-slate-950 group-hover:text-indigo-600 transition-colors font-sans uppercase">
+                BALENCIAGA
+            </span>
+        );
+    }
+
+    return (
+        <span className="text-xs font-black tracking-wider text-slate-900 group-hover:text-indigo-600 transition-colors uppercase">
+            {name}
+        </span>
+    );
+};
+
+const ProductSlider = ({ items, renderCard, id }) => {
+    const scrollLeft = () => {
+        const el = document.getElementById(id);
+        if (el) el.scrollBy({ left: -320, behavior: 'smooth' });
+    };
+
+    const scrollRight = () => {
+        const el = document.getElementById(id);
+        if (el) el.scrollBy({ left: 320, behavior: 'smooth' });
+    };
+
+    return (
+        <div className="relative group/slider">
+            <button
+                onClick={scrollLeft}
+                className="absolute -left-4 top-1/2 -translate-y-1/2 z-10 bg-white hover:bg-slate-50 text-slate-800 w-10 h-10 rounded-full flex items-center justify-center shadow-lg border border-slate-100 transition-all opacity-0 group-hover/slider:opacity-100 cursor-pointer hover:scale-110"
+            >
+                <span className="text-lg font-black">←</span>
+            </button>
+
+            <button
+                onClick={scrollRight}
+                className="absolute -right-4 top-1/2 -translate-y-1/2 z-10 bg-white hover:bg-slate-50 text-slate-800 w-10 h-10 rounded-full flex items-center justify-center shadow-lg border border-slate-100 transition-all opacity-0 group-hover/slider:opacity-100 cursor-pointer hover:scale-110"
+            >
+                <span className="text-lg font-black">→</span>
+            </button>
+
+            <div
+                id={id}
+                className="flex gap-6 overflow-x-auto scrollbar-none pb-4 scroll-smooth snap-x snap-mandatory"
+                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
+                {items.map((item) => (
+                    <div key={item.id} className="w-[280px] sm:w-[300px] flex-shrink-0 snap-start">
+                        {renderCard(item)}
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+};
+
 export default function HomePage() {
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
@@ -18,37 +108,68 @@ export default function HomePage() {
     const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [currentSlide, setCurrentSlide] = useState(0);
+    const [isListeningHome, setIsListeningHome] = useState(false);
 
     const slides = [
         {
             id: 1,
-            tag: "Nike Collection ⚡",
-            title: "Định Hình Phong Cách Nike",
-            description: "Khám phá bộ sưu tập quần áo và giày thể thao Nike Air Max, Dri-FIT chính hãng mới nhất. Tối ưu chất liệu cho trải nghiệm đỉnh cao.",
+            tag: "NIKE RUNNING / TRAINING ⚡",
+            title: "BỨT PHÁ GIỚI HẠN BẢN THÂN",
+            description: "Khám phá các dòng sản phẩm giày chạy bộ Nike Pegasus, Nike Air Max, và dòng quần áo Dri-FIT công nghệ mới nhất giúp nâng tầm hiệu năng vận động.",
             image: "/uploads/slide_1.jpg",
-            buttonText: "Mua Ngay Cực Hot",
+            buttonText: "MUA NGAY (SALE 30%)",
             buttonLink: "/product?brand=1",
-            bgColor: "from-slate-955 via-indigo-955 to-slate-900"
+            bgColor: "from-slate-955 via-slate-900 to-indigo-950",
+            tagBg: "bg-indigo-600 text-white",
+            btnBg: "bg-indigo-600 hover:bg-indigo-500 shadow-indigo-650/40 text-white"
         },
         {
             id: 2,
-            tag: "Adidas Originals ✨",
-            title: "Đường Phố Cùng Adidas",
-            description: "Khởi nguồn năng lượng tự do cùng dòng sản phẩm Adidas Originals kinh điển. Tối giản, cá tính và vô cùng phong cách cho giới trẻ.",
+            tag: "ADIDAS PERFORMANCE 🌟",
+            title: "BẬT PHONG CÁCH, CHẠY ĐAM MÊ",
+            description: "Trải nghiệm các dòng giày chạy bộ Adidas Ultraboost, giày đá bóng Predator, cùng dòng sản phẩm thể thao mang đậm dấu ấn đường phố kinh điển.",
             image: "/uploads/slide_2.jpg",
-            buttonText: "Xem BST Adidas",
+            buttonText: "KHÁM PHÁ BỘ SƯU TẬP",
             buttonLink: "/product?brand=2",
-            bgColor: "from-slate-955 via-emerald-955 to-slate-900"
+            bgColor: "from-slate-955 via-slate-900 to-emerald-950",
+            tagBg: "bg-emerald-600 text-white",
+            btnBg: "bg-emerald-600 hover:bg-emerald-500 shadow-emerald-650/40 text-white"
         },
         {
             id: 3,
-            tag: "Puma Motorsport 🏎️",
-            title: "Bứt Phá Cùng Puma",
-            description: "Sự kết hợp hoàn hảo giữa phong cách đường phố năng động và tinh thần thể thao tốc độ đầy cá tính. Khám phá ngay các mẫu Puma Suede mới nhất.",
+            tag: "PUMA SPEED / MOTORSPORT 🏎️",
+            title: "NHANH HƠN, BỀN BỈ HƠN",
+            description: "Sự giao thoa hoàn hảo giữa tốc độ bứt tốc và phong cách đường phố năng động. Khám phá các dòng giày Puma Nitro và bộ sưu tập Motorsport cá tính.",
             image: "/uploads/slide_3.jpg",
-            buttonText: "Khám Phá Puma",
+            buttonText: "XEM NGAY ƯU ĐÃI",
             buttonLink: "/product?brand=3",
-            bgColor: "from-slate-955 via-rose-955 to-slate-900"
+            bgColor: "from-slate-955 via-slate-900 to-rose-950",
+            tagBg: "bg-rose-600 text-white",
+            btnBg: "bg-rose-600 hover:bg-rose-500 shadow-rose-650/40 text-white"
+        },
+        {
+            id: 4,
+            tag: "JORDAN RETRO 🏀",
+            title: "HUYỀN THOẠI SÂN ĐẤU JORDAN",
+            description: "Định hình phong cách bóng rổ đường phố cùng các thiết kế Air Jordan kinh điển chính hãng, tối ưu êm ái trên từng bước nhảy.",
+            image: "https://images.unsplash.com/photo-1597045566677-8cf032ed6634?q=80&w=800&auto=format&fit=crop",
+            buttonText: "MUA NGAY JORDAN",
+            buttonLink: "/product?brand=4",
+            bgColor: "from-slate-955 via-slate-900 to-red-950",
+            tagBg: "bg-red-600 text-white",
+            btnBg: "bg-red-600 hover:bg-red-500 shadow-red-650/40 text-white"
+        },
+        {
+            id: 5,
+            tag: "BALENCIAGA LUXURY ✈️",
+            title: "ĐỘT PHÁ BẢN THÂN CÙNG BALENCIAGA",
+            description: "Khẳng định phong cách thời trang phi giới tính độc bản cùng các sản phẩm cao cấp, mang đậm tinh thần tự do phóng khoáng.",
+            image: "https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=800&auto=format&fit=crop",
+            buttonText: "XEM BST BALENCIAGA",
+            buttonLink: "/product?brand=5",
+            bgColor: "from-slate-955 via-slate-900 to-zinc-900",
+            tagBg: "bg-slate-700 text-white",
+            btnBg: "bg-white hover:bg-slate-100 text-slate-900 shadow-white/10"
         }
     ];
 
@@ -88,6 +209,51 @@ export default function HomePage() {
         loadHomeData();
     }, []);
 
+    const handleHomeVoiceSearch = () => {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            window.dispatchEvent(new CustomEvent('cartToast', { 
+                detail: { message: '❌ Trình duyệt không hỗ trợ Voice Search. Vui lòng dùng Chrome!', type: 'warning' } 
+            }));
+            return;
+        }
+
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'vi-VN';
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        setIsListeningHome(true);
+        window.dispatchEvent(new CustomEvent('cartToast', { 
+            detail: { message: '🎙️ Đang lắng nghe giọng nói của bạn...', type: 'info' } 
+        }));
+
+        recognition.start();
+
+        recognition.onresult = (event) => {
+            const result = event.results[0][0].transcript;
+            setIsListeningHome(false);
+            window.dispatchEvent(new CustomEvent('cartToast', { 
+                detail: { message: `🎙️ Đã nhận diện: "${result}"`, type: 'success' } 
+            }));
+            setTimeout(() => {
+                window.location.href = `/product?q=${encodeURIComponent(result)}`;
+            }, 500);
+        };
+
+        recognition.onerror = (event) => {
+            console.error('Lỗi giọng nói:', event.error);
+            setIsListeningHome(false);
+            window.dispatchEvent(new CustomEvent('cartToast', { 
+                detail: { message: '❌ Không nhận diện được giọng nói hoặc thiếu quyền micro.', type: 'warning' } 
+            }));
+        };
+
+        recognition.onend = () => {
+            setIsListeningHome(false);
+        };
+    };
+
     // Xử lý thêm vào giỏ hàng từ nút nhanh
     const handleAddToCart = async (productId) => {
         const storedUser = localStorage.getItem('user');
@@ -115,9 +281,9 @@ export default function HomePage() {
     };
 
     // Phân loại các nhóm sản phẩm ở trang chủ
-    const saleProducts = products.filter(item => Number(item.is_sale) === 1).slice(0, 4);
-    const hotProducts = products.filter(item => Number(item.is_hot) === 1).slice(0, 4);
-    const newProducts = products.filter(item => Number(item.is_new) === 1).slice(0, 4);
+    const saleProducts = products.filter(item => Number(item.is_sale) === 1).slice(0, 10);
+    const hotProducts = products.filter(item => Number(item.is_hot) === 1).slice(0, 10);
+    const newProducts = products.filter(item => Number(item.is_new) === 1).slice(0, 10);
 
     const renderProductCard = (item) => (
         <div key={item.id} className="group relative bg-white border border-slate-100 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col h-full">
@@ -182,13 +348,27 @@ export default function HomePage() {
                             </span>
                         )}
                     </div>
-                    <button
-                        onClick={() => handleAddToCart(item.id)}
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white p-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center cursor-pointer shadow-sm shadow-indigo-100 hover:shadow-md"
-                        title="Thêm vào giỏ hàng"
-                    >
-                        🛒 +
-                    </button>
+                    <div className="flex gap-1.5 items-center">
+                        <button
+                            onClick={(e) => {
+                                e.preventDefault();
+                                window.dispatchEvent(new CustomEvent('askProductAdvice', {
+                                    detail: { productId: item.id, productName: item.name }
+                                }));
+                            }}
+                            className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-100 p-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center cursor-pointer shadow-sm hover:shadow-md"
+                            title="Tư vấn sản phẩm"
+                        >
+                            💬
+                        </button>
+                        <button
+                            onClick={() => handleAddToCart(item.id)}
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white p-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center cursor-pointer shadow-sm shadow-indigo-100 hover:shadow-md"
+                            title="Thêm vào giỏ hàng"
+                        >
+                            🛒 +
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -216,31 +396,33 @@ export default function HomePage() {
                         return (
                             <div
                                 key={slide.id}
-                                className={`absolute inset-0 w-full h-full bg-gradient-to-br ${slide.bgColor} transition-opacity duration-1000 ease-in-out flex flex-col md:flex-row items-center justify-between px-6 sm:px-12 md:px-20 py-8 md:py-0 ${
-                                    isActive ? 'opacity-100 z-10' : 'opacity-0 pointer-events-none z-0'
-                                }`}
+                                className={`absolute inset-0 w-full h-full bg-gradient-to-br ${slide.bgColor} transition-opacity duration-1000 ease-in-out flex flex-col md:flex-row items-center justify-between px-6 sm:px-12 md:px-20 py-8 md:py-0 ${isActive ? 'opacity-100 z-10' : 'opacity-0 pointer-events-none z-0'
+                                    }`}
                             >
                                 {/* Left side content */}
                                 <div className="max-w-xl text-left space-y-4 md:space-y-6 z-10 mt-8 md:mt-0">
-                                    <span className="inline-block bg-white/10 text-indigo-300 border border-white/10 px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider">
+                                    <span className={`inline-block ${slide.tagBg} text-[10px] font-black tracking-widest px-4 py-2 rounded-full uppercase shadow-sm`}>
                                         {slide.tag}
                                     </span>
-                                    <h1 className="text-3xl sm:text-5xl font-black text-white leading-tight tracking-tight">
-                                        {slide.title}
-                                    </h1>
+                                    <Link href={slide.buttonLink} className="block group/title">
+                                        <h1 className="text-4xl sm:text-6xl font-black text-white leading-none italic tracking-tighter uppercase hover:text-indigo-200 transition-colors">
+                                            {slide.title}
+                                        </h1>
+                                    </Link>
                                     <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-lg line-clamp-3">
                                         {slide.description}
                                     </p>
                                     <div className="pt-2 flex flex-wrap gap-3">
                                         <Link
                                             href={slide.buttonLink}
-                                            className="bg-white hover:bg-slate-100 text-slate-900 px-6 py-3 rounded-2xl font-bold shadow-lg transition-all transform hover:-translate-y-0.5 text-xs sm:text-sm cursor-pointer"
+                                            className={`${slide.btnBg} px-8 py-4 rounded-2xl font-black shadow-lg transition-all transform hover:-translate-y-0.5 text-xs sm:text-sm tracking-wider uppercase cursor-pointer flex items-center gap-1.5`}
                                         >
-                                            {slide.buttonText}
+                                            <span>{slide.buttonText}</span>
+                                            <span>→</span>
                                         </Link>
                                         <Link
                                             href="/contact"
-                                            className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-6 py-3 rounded-2xl font-bold transition-all text-xs sm:text-sm backdrop-blur-sm cursor-pointer"
+                                            className="bg-white/5 hover:bg-white/10 text-white border border-white/10 px-6 py-4 rounded-2xl font-black transition-all text-xs sm:text-sm backdrop-blur-sm cursor-pointer uppercase tracking-wider"
                                         >
                                             Liên Hệ Tư Vấn
                                         </Link>
@@ -248,14 +430,18 @@ export default function HomePage() {
                                 </div>
 
                                 {/* Right side image */}
-                                <div className="relative w-full md:w-1/2 h-[160px] md:h-full flex items-center justify-center overflow-hidden mt-4 md:mt-0">
+                                <Link 
+                                    href={slide.buttonLink}
+                                    className="relative w-full md:w-1/2 h-[160px] md:h-full flex items-center justify-center overflow-hidden mt-4 md:mt-0 cursor-pointer group/img"
+                                >
+                                    <div className="absolute w-72 h-72 rounded-full bg-indigo-500/10 blur-3xl pointer-events-none z-0"></div>
                                     <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-l from-transparent to-slate-950/40 z-10"></div>
                                     <img
                                         src={getImageUrl(slide.image)}
                                         alt={slide.title}
-                                        className="w-full h-full object-cover rounded-2xl md:rounded-none md:absolute md:inset-y-0 md:right-0 md:w-[90%] md:h-[80%] md:my-auto md:rounded-3xl shadow-2xl transition-transform duration-1000 scale-100 hover:scale-105"
+                                        className="w-full h-full object-cover rounded-2xl md:rounded-none md:absolute md:inset-y-0 md:right-0 md:w-[90%] md:h-[80%] md:my-auto md:rounded-3xl shadow-2xl transition-transform duration-1000 scale-100 group-hover/img:scale-105 z-10"
                                     />
-                                </div>
+                                </Link>
                             </div>
                         );
                     })}
@@ -283,9 +469,8 @@ export default function HomePage() {
                         <button
                             key={idx}
                             onClick={() => { setCurrentSlide(idx); }}
-                            className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
-                                idx === currentSlide ? 'w-8 bg-indigo-400' : 'w-2 bg-white/40 hover:bg-white/60'
-                            }`}
+                            className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${idx === currentSlide ? 'w-8 bg-indigo-400' : 'w-2 bg-white/40 hover:bg-white/60'
+                                }`}
                         ></button>
                     ))}
                 </div>
@@ -323,6 +508,79 @@ export default function HomePage() {
                                 <p className="text-slate-400 text-xs mt-0.5 font-medium">Tổng đài hỗ trợ 24/7</p>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* 1.8. Search and Trending Section */}
+            <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-6">
+                <div className="bg-slate-900 border border-slate-850 rounded-3xl py-10 px-8 shadow-xl text-center space-y-6 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none"></div>
+                    <div className="absolute bottom-0 left-0 w-64 h-64 bg-emerald-600/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                    <div className="max-w-xl mx-auto space-y-2 relative z-10">
+                        <h3 className="text-xl sm:text-2xl font-black text-white italic tracking-tight uppercase">BẠN ĐANG TÌM KIẾM GÌ?</h3>
+                        <p className="text-slate-400 text-xs font-semibold">Tìm kiếm nhanh chóng các dòng sản phẩm thể thao xu hướng hàng đầu</p>
+                    </div>
+
+                    <form
+                        onSubmit={(e) => {
+                            e.preventDefault();
+                            const query = e.target.search.value.trim();
+                            if (query) window.location.href = `/product?q=${encodeURIComponent(query)}`;
+                        }}
+                        className="max-w-xl mx-auto flex gap-3 relative z-10"
+                    >
+                        <div className="relative flex-1">
+                            <input
+                                type="text"
+                                name="search"
+                                placeholder="Nhập tên giày, áo, thương hiệu..."
+                                className="w-full px-5 py-4 pl-12 pr-12 bg-white/5 border border-white/10 rounded-2xl text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:bg-white/10 transition-all font-semibold"
+                            />
+                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm">🔍</span>
+                            <button
+                                type="button"
+                                onClick={handleHomeVoiceSearch}
+                                className={`absolute right-4 top-1/2 -translate-y-1/2 p-1.5 rounded-xl transition-all ${
+                                    isListeningHome 
+                                        ? 'text-rose-500 bg-rose-500/10 animate-pulse' 
+                                        : 'text-slate-400 hover:text-white hover:bg-white/5'
+                                }`}
+                                title="Tìm kiếm bằng giọng nói"
+                            >
+                                🎙️
+                            </button>
+                        </div>
+                        <button
+                            type="submit"
+                            className="bg-indigo-600 hover:bg-indigo-500 text-white font-black px-6 py-4 rounded-2xl text-xs sm:text-sm transition-all shadow-lg shadow-indigo-650/30 cursor-pointer uppercase tracking-wider"
+                        >
+                            Tìm Kiếm
+                        </button>
+                    </form>
+
+                    <div className="max-w-xl mx-auto flex flex-wrap items-center justify-center gap-2.5 text-xs relative z-10 pt-2">
+                        <span className="text-slate-400 font-black uppercase tracking-wider text-[10px] mr-1.5 flex items-center gap-1">
+                            🔥 Xu hướng:
+                        </span>
+                        {[
+                            { label: 'Nike Pegasus', query: 'Pegasus' },
+                            { label: 'Ultraboost', query: 'Ultraboost' },
+                            { label: 'Jordan Retro', query: 'Jordan' },
+                            { label: 'Puma Nitro', query: 'Puma' },
+                            { label: 'Balenciaga', query: 'Balenciaga' },
+                            { label: 'Áo Khoác', query: 'áo khoác' },
+                            { label: 'Áo Polo', query: 'polo' }
+                        ].map((tag, idx) => (
+                            <Link
+                                key={idx}
+                                href={`/product?q=${encodeURIComponent(tag.query)}`}
+                                className="bg-white/5 hover:bg-indigo-600/20 hover:border-indigo-500 text-slate-300 hover:text-indigo-400 border border-white/5 px-3 py-1.5 rounded-xl font-bold transition-all text-[11px]"
+                            >
+                                {tag.label}
+                            </Link>
+                        ))}
                     </div>
                 </div>
             </section>
@@ -381,9 +639,9 @@ export default function HomePage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     {/* Banner 1 */}
                     <div className="relative h-64 rounded-3xl overflow-hidden shadow-md group">
-                        <img 
-                            src="https://images.unsplash.com/photo-1552346154-21d32810aba3?q=80&w=800&auto=format&fit=crop" 
-                            alt="Jordan Collection" 
+                        <img
+                            src="https://images.unsplash.com/photo-1552346154-21d32810aba3?q=80&w=800&auto=format&fit=crop"
+                            alt="Jordan Collection"
                             className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-750"
                         />
                         <div className="absolute inset-0 bg-gradient-to-r from-slate-950/80 to-transparent z-10 flex flex-col justify-center p-8 text-white space-y-3">
@@ -398,9 +656,9 @@ export default function HomePage() {
 
                     {/* Banner 2 */}
                     <div className="relative h-64 rounded-3xl overflow-hidden shadow-md group">
-                        <img 
-                            src="https://images.unsplash.com/photo-1539109136881-3be0616acf4b?q=80&w=800&auto=format&fit=crop" 
-                            alt="Balenciaga Campaign" 
+                        <img
+                            src="https://images.unsplash.com/photo-1539109136881-3be0616acf4b?q=80&w=800&auto=format&fit=crop"
+                            alt="Balenciaga Campaign"
                             className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-750"
                         />
                         <div className="absolute inset-0 bg-gradient-to-r from-slate-950/80 to-transparent z-10 flex flex-col justify-center p-8 text-white space-y-3">
@@ -426,14 +684,16 @@ export default function HomePage() {
                         Xem tất cả ưu đãi <span>→</span>
                     </Link>
                 </div>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                    {saleProducts.length === 0 ? (
-                        <div className="col-span-4 text-center text-gray-500 py-10 font-medium">Chưa có sản phẩm khuyến mãi nào.</div>
-                    ) : (
-                        saleProducts.map(renderProductCard)
-                    )}
-                </div>
+
+                {saleProducts.length === 0 ? (
+                    <div className="text-center text-gray-500 py-10 font-medium bg-white border border-slate-100 rounded-3xl">Chưa có sản phẩm khuyến mãi nào.</div>
+                ) : (
+                    <ProductSlider
+                        items={saleProducts}
+                        renderCard={renderProductCard}
+                        id="slider-sale"
+                    />
+                )}
             </section>
 
             {/* 3.2. Sản Phẩm Bán Chạy */}
@@ -447,14 +707,16 @@ export default function HomePage() {
                         Xem sản phẩm HOT <span>→</span>
                     </Link>
                 </div>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                    {hotProducts.length === 0 ? (
-                        <div className="col-span-4 text-center text-gray-500 py-10 font-medium">Chưa có sản phẩm bán chạy nào.</div>
-                    ) : (
-                        hotProducts.map(renderProductCard)
-                    )}
-                </div>
+
+                {hotProducts.length === 0 ? (
+                    <div className="text-center text-gray-500 py-10 font-medium bg-white border border-slate-100 rounded-3xl">Chưa có sản phẩm bán chạy nào.</div>
+                ) : (
+                    <ProductSlider
+                        items={hotProducts}
+                        renderCard={renderProductCard}
+                        id="slider-hot"
+                    />
+                )}
             </section>
 
             {/* 3.3. Hàng Mới Về */}
@@ -468,14 +730,16 @@ export default function HomePage() {
                         Xem hàng mới về <span>→</span>
                     </Link>
                 </div>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                    {newProducts.length === 0 ? (
-                        <div className="col-span-4 text-center text-gray-500 py-10 font-medium">Chưa có sản phẩm mới nào.</div>
-                    ) : (
-                        newProducts.map(renderProductCard)
-                    )}
-                </div>
+
+                {newProducts.length === 0 ? (
+                    <div className="text-center text-gray-500 py-10 font-medium bg-white border border-slate-100 rounded-3xl">Chưa có sản phẩm mới nào.</div>
+                ) : (
+                    <ProductSlider
+                        items={newProducts}
+                        renderCard={renderProductCard}
+                        id="slider-new"
+                    />
+                )}
             </section>
 
             {/* 3.5. Store Milestones / Stats */}
@@ -557,31 +821,18 @@ export default function HomePage() {
                     <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Thương Hiệu Nổi Bật</h2>
                     <p className="text-slate-500 text-sm mt-2 font-medium">Đối tác cung cấp trang phục thể thao chính hãng</p>
                 </div>
-                
-                <div className="grid grid-cols-3 sm:grid-cols-6 gap-6">
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-6">
                     {brands.map((b) => (
-                        <Link 
-                            key={b.id} 
-                            href={`/product?brand=${b.id}`} 
-                            className="bg-white border border-slate-100 hover:border-indigo-200 hover:shadow-lg rounded-2xl p-5 flex flex-col items-center justify-center gap-2 transition-all group cursor-pointer"
+                        <Link
+                            key={b.id}
+                            href={`/product?brand=${b.id}`}
+                            className="bg-white border border-slate-100 hover:border-slate-350 hover:shadow-xl rounded-3xl p-6 flex flex-col items-center justify-center min-h-[120px] transition-all duration-300 transform hover:-translate-y-1 group cursor-pointer relative overflow-hidden"
                         >
-                            <div className="h-10 w-full flex items-center justify-center relative">
-                                {b.image ? (
-                                    <img 
-                                        src={getImageUrl(b.image)} 
-                                        alt={b.name} 
-                                        className="h-full max-w-[80%] object-contain filter grayscale group-hover:grayscale-0 transition-all duration-300"
-                                        onError={(e) => {
-                                            e.target.style.display = 'none';
-                                            e.target.nextSibling.style.display = 'flex';
-                                        }}
-                                    />
-                                ) : null}
-                                <span className="hidden text-sm font-black text-slate-700 tracking-wider group-hover:text-indigo-600 transition-colors uppercase">
-                                    {b.name}
-                                </span>
+                            <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                            <div className="h-10 w-full flex items-center justify-center relative z-10">
+                                <BrandLogo name={b.name} slug={b.slug} />
                             </div>
-                            <span className="text-[10px] font-bold text-slate-400 group-hover:text-indigo-600 transition-colors">{b.name}</span>
                         </Link>
                     ))}
                 </div>
@@ -593,7 +844,7 @@ export default function HomePage() {
                     <h3 className="text-xl sm:text-2xl font-black text-slate-800">Đăng Ký Nhận Bản Tin Ưu Đãi</h3>
                     <p className="text-slate-400 text-xs leading-relaxed font-medium">Nhận ngay mã giảm giá 10% cho đơn hàng đầu tiên và cập nhật sớm nhất các ưu đãi từ TRANG STORE.</p>
                 </div>
-                <form 
+                <form
                     onSubmit={(e) => {
                         e.preventDefault();
                         window.dispatchEvent(new CustomEvent('cartToast', { detail: { message: 'Đăng ký nhận tin thành công! Ưu đãi đã gửi qua email 📧' } }));
@@ -601,14 +852,14 @@ export default function HomePage() {
                     }}
                     className="max-w-md mx-auto flex gap-3"
                 >
-                    <input 
-                        type="email" 
+                    <input
+                        type="email"
                         required
-                        placeholder="Nhập địa chỉ email của bạn..." 
+                        placeholder="Nhập địa chỉ email của bạn..."
                         className="flex-1 px-4 py-3 border border-slate-200 rounded-2xl text-xs sm:text-sm focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
                     />
-                    <button 
-                        type="submit" 
+                    <button
+                        type="submit"
                         className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-3 rounded-2xl text-xs sm:text-sm transition-all shadow-md shadow-indigo-100 cursor-pointer"
                     >
                         Đăng Ký

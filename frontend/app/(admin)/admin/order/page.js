@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { OrderService } from '@/services/orderService';
 import { getImageUrl } from '@/services/imageHelper';
+import Link from 'next/link';
 
 export default function AdminOrderPage() {
     const [orders, setOrders] = useState([]);
@@ -35,7 +36,7 @@ export default function AdminOrderPage() {
             setSelectedStatus(res.data.order.status || 'Chờ xử lý');
             setShowModal(true);
         } else {
-            alert(res.message || 'Không thể lấy thông tin chi tiết đơn hàng!');
+            window.dispatchEvent(new CustomEvent('showToast', { detail: { message: res.message || 'Không thể lấy thông tin chi tiết đơn hàng!', type: 'error' } }));
         }
     };
 
@@ -250,31 +251,48 @@ export default function AdminOrderPage() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50/50 p-5 rounded-2xl border border-gray-100">
                                 <div className="space-y-2.5 text-sm">
                                     <h4 className="text-sm font-bold text-slate-800 border-b border-slate-200/60 pb-1.5">Thông tin giao hàng</h4>
-                                    <div><span className="text-gray-500 font-medium">Mã KH (User ID):</span> <span className="font-semibold text-indigo-600">{selectedOrderDetails.order.user_id ? `#${selectedOrderDetails.order.user_id}` : 'Khách vãng lai'}</span></div>
+                                    <div>
+                                        <span className="text-gray-500 font-medium">Mã KH (User ID):</span>{' '}
+                                        <span className="font-semibold text-indigo-600">
+                                            {selectedOrderDetails.order.user_id ? `#${selectedOrderDetails.order.user_id}` : 'Khách vãng lai'}
+                                        </span>
+                                        {selectedOrderDetails.order.user_id && (
+                                            <Link
+                                                href={`/admin/chat?userId=${selectedOrderDetails.order.user_id}&userName=${encodeURIComponent(selectedOrderDetails.order.fullname)}`}
+                                                className="ml-3 inline-flex items-center gap-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 px-2.5 py-1 rounded-lg text-[11px] font-bold border border-indigo-100 transition-colors shadow-sm"
+                                            >
+                                                💬 Chat trực tuyến
+                                            </Link>
+                                        )}
+                                    </div>
                                     {selectedOrderDetails.order.user_email && (
                                         <div>
                                             <span className="text-gray-500 font-medium">Email tài khoản:</span>{' '}
                                             <span className="font-semibold text-gray-800">{selectedOrderDetails.order.user_email}</span>
-                                            <a
-                                                href={`mailto:${selectedOrderDetails.order.user_email}?subject=Thông báo đơn hàng #${selectedOrderDetails.order.id} - Trang Store&body=Chào ${selectedOrderDetails.order.fullname}, Trang Store xin thông báo về đơn hàng #${selectedOrderDetails.order.id} của bạn...`}
-                                                className="ml-2 inline-flex items-center gap-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 px-2 py-0.5 rounded text-[10px] font-bold border border-emerald-100 transition-colors"
-                                            >
-                                                ✉️ Gửi Mail
-                                            </a>
+                                            {!selectedOrderDetails.order.user_id && (
+                                                <a
+                                                    href={`mailto:${selectedOrderDetails.order.user_email}?subject=Thông báo đơn hàng #${selectedOrderDetails.order.id} - Trang Store&body=Chào ${selectedOrderDetails.order.fullname}, Trang Store xin thông báo về đơn hàng #${selectedOrderDetails.order.id} của bạn...`}
+                                                    className="ml-2 inline-flex items-center gap-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 px-2 py-0.5 rounded text-[10px] font-bold border border-emerald-100 transition-colors"
+                                                >
+                                                    ✉️ Gửi Mail
+                                                </a>
+                                            )}
                                         </div>
                                     )}
                                     <div><span className="text-gray-500 font-medium">Họ tên nhận hàng:</span> <span className="font-semibold text-gray-800">{selectedOrderDetails.order.fullname}</span></div>
                                     <div>
                                         <span className="text-gray-500 font-medium">Điện thoại liên hệ:</span>{' '}
                                         <span className="font-semibold text-gray-800">{selectedOrderDetails.order.phone}</span>
-                                        <a
-                                            href={`https://zalo.me/${selectedOrderDetails.order.phone.replace(/[^0-9]/g, '')}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="ml-2 inline-flex items-center gap-1 bg-blue-50 hover:bg-blue-100 text-blue-600 px-2 py-0.5 rounded text-[10px] font-bold border border-blue-100 transition-colors"
-                                        >
-                                            💬 Chat Zalo
-                                        </a>
+                                        {!selectedOrderDetails.order.user_id && (
+                                            <a
+                                                href={`https://zalo.me/${selectedOrderDetails.order.phone.replace(/[^0-9]/g, '')}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="ml-2 inline-flex items-center gap-1 bg-blue-50 hover:bg-blue-100 text-blue-600 px-2 py-0.5 rounded text-[10px] font-bold border border-blue-100 transition-colors"
+                                            >
+                                                💬 Chat Zalo
+                                            </a>
+                                        )}
                                     </div>
                                     <div><span className="text-gray-500 font-medium">Địa chỉ giao:</span> <span className="font-semibold text-gray-800">{selectedOrderDetails.order.address}</span></div>
                                     <div><span className="text-gray-500 font-medium">Tổng tiền:</span> <span className="font-extrabold text-rose-600">{Number(selectedOrderDetails.order.total_price).toLocaleString('vi-VN')} đ</span></div>

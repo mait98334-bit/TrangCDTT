@@ -127,6 +127,13 @@ function ContactForm() {
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+            {/* Breadcrumbs */}
+            <nav className="flex items-center gap-1.5 text-xs sm:text-sm text-gray-500 mb-6 font-medium">
+                <Link href="/" className="hover:text-indigo-600 transition-colors">Trang chủ</Link>
+                <span className="text-gray-400">›</span>
+                <span className="text-gray-800 font-semibold">Liên hệ</span>
+            </nav>
+
             {/* Title Section */}
             <div className="mb-10 border-b border-slate-100 pb-4 text-center max-w-xl mx-auto">
                 <h1 className="text-3xl font-black text-slate-900 tracking-tight">Liên Hệ Với Chúng Tôi</h1>

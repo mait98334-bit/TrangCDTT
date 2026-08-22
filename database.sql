@@ -39,7 +39,7 @@ CREATE TABLE `brands` (
 
 LOCK TABLES `brands` WRITE;
 /*!40000 ALTER TABLE `brands` DISABLE KEYS */;
-INSERT INTO `brands` VALUES (1,'Nike','nike','nike.jpg','2026-07-30 06:49:36',0),(2,'Adidas','adidas','adidas.jpg','2026-07-30 06:49:36',0),(3,'Puma','puma','puma.jpg','2026-07-30 06:52:47',0),(4,'Jordan','jordan','jordan.jpg','2026-08-10 02:46:33',0),(5,'Balenciaga','balenciaga','balenciaga.jpg','2026-08-10 02:46:33',0),(6,'Manduka','manduka',NULL,'2026-08-12 02:40:33',0);
+INSERT INTO `brands` VALUES (1,'Nike','nike','nike.jpg','2026-07-30 06:49:36',0),(2,'Adidas','adidas','adidas.jpg','2026-07-30 06:49:36',0),(3,'Puma','puma','puma.jpg','2026-07-30 06:52:47',0),(4,'Jordan','jordan','jordan.jpg','2026-08-10 02:46:33',0),(5,'Balenciaga','balenciaga','balenciaga.jpg','2026-08-10 02:46:33',0),(6,'Manduka','manduka',NULL,'2026-08-12 02:40:33',1);
 /*!40000 ALTER TABLE `brands` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -72,7 +72,6 @@ CREATE TABLE `cart_items` (
 
 LOCK TABLES `cart_items` WRITE;
 /*!40000 ALTER TABLE `cart_items` DISABLE KEYS */;
-INSERT INTO `cart_items` VALUES (1,2,2,108,1);
 /*!40000 ALTER TABLE `cart_items` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -143,7 +142,7 @@ CREATE TABLE `chat_messages` (
   `is_admin` tinyint(1) DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -152,7 +151,7 @@ CREATE TABLE `chat_messages` (
 
 LOCK TABLES `chat_messages` WRITE;
 /*!40000 ALTER TABLE `chat_messages` DISABLE KEYS */;
-INSERT INTO `chat_messages` VALUES (1,'user_2','Trang Si','tôi muốn mua đồ free thôi. chứ tôi ko có tiền',0,'2026-08-17 03:08:34'),(2,'user_2','Admin Store','bạn có học qua lớp của thầy huấn chưa. hay trốn học buổi đó',1,'2026-08-17 03:09:20'),(3,'user_2','Trang Si','à tôi có vào rồi. nhưng mà tôi ko thích ăn shit. tôi chỉ muốn ăn đồ của shop free thôi',0,'2026-08-17 03:09:52'),(4,'user_2_1786938301495','Trang Si (Cuộc trò chuyện #2)','tôi muốn mua đồ free. chứ tôi ko có tiền ',0,'2026-08-17 03:45:15'),(5,'user_2_1786938301495','Admin Store','bạn bỏ học buổi học thầy huấn dạy à',1,'2026-08-17 03:45:40'),(6,'user_2_1786938301495','Trang Si (Cuộc trò chuyện #2)','tôi biết. nm tôi ko thích ăn shit. tôi muốn ăn đồ free của shop bạn ',0,'2026-08-17 03:46:10'),(7,'user_2_1786938301495','Admin Store','vậy bạn đến địa chỉ shop vào đêm nay. tôi sẽ cho bạn đồ free shop tôi',1,'2026-08-17 03:47:19'),(8,'user_2_1786938301495','Trang Si (Cuộc trò chuyện #2)','tôi sợ mẹ mắng lắm. đi tới nhà đàn ông vào ban đêm  nguy hiểm.',0,'2026-08-17 03:47:55'),(9,'user_2_1786938301495','Trang Si (Cuộc trò chuyện #2)','nam nữ thụ thụ bất thân',0,'2026-08-17 03:48:07'),(10,'user_2_1786938301495','Admin Store','ai nói bạn tôi là đàn ông?',1,'2026-08-17 03:48:22'),(11,'user_2_1786938301495','Trang Si (Cuộc trò chuyện #2)','ồ les les',0,'2026-08-17 03:49:20'),(12,'user_2','Admin Store','ok',1,'2026-08-17 03:50:27'),(13,'user_2','Admin Store','vậy tới đây đêm nay với tôi',1,'2026-08-17 03:50:41'),(14,'user_2','Admin Store','tôi sẽ cho bạn đồ free của shop tôi trọn đời',1,'2026-08-17 03:50:59');
+INSERT INTO `chat_messages` VALUES (1,'user_2','Trang Si','tôi muốn mua đồ free thôi. chứ tôi ko có tiền',0,'2026-08-17 03:08:34'),(2,'user_2','Admin Store','bạn có học qua lớp của thầy huấn chưa. hay trốn học buổi đó',1,'2026-08-17 03:09:20'),(3,'user_2','Trang Si','à tôi có vào rồi. nhưng mà tôi ko thích ăn shit. tôi chỉ muốn ăn đồ của shop free thôi',0,'2026-08-17 03:09:52'),(4,'user_2_1786938301495','Trang Si (Cuộc trò chuyện #2)','tôi muốn mua đồ free. chứ tôi ko có tiền ',0,'2026-08-17 03:45:15'),(5,'user_2_1786938301495','Admin Store','bạn bỏ học buổi học thầy huấn dạy à',1,'2026-08-17 03:45:40'),(6,'user_2_1786938301495','Trang Si (Cuộc trò chuyện #2)','tôi biết. nm tôi ko thích ăn shit. tôi muốn ăn đồ free của shop bạn ',0,'2026-08-17 03:46:10'),(7,'user_2_1786938301495','Admin Store','vậy bạn đến địa chỉ shop vào đêm nay. tôi sẽ cho bạn đồ free shop tôi',1,'2026-08-17 03:47:19'),(8,'user_2_1786938301495','Trang Si (Cuộc trò chuyện #2)','tôi sợ mẹ mắng lắm. đi tới nhà đàn ông vào ban đêm  nguy hiểm.',0,'2026-08-17 03:47:55'),(9,'user_2_1786938301495','Trang Si (Cuộc trò chuyện #2)','nam nữ thụ thụ bất thân',0,'2026-08-17 03:48:07'),(10,'user_2_1786938301495','Admin Store','ai nói bạn tôi là đàn ông?',1,'2026-08-17 03:48:22'),(11,'user_2_1786938301495','Trang Si (Cuộc trò chuyện #2)','ồ les les',0,'2026-08-17 03:49:20'),(12,'user_2','Admin Store','ok',1,'2026-08-17 03:50:27'),(13,'user_2','Admin Store','vậy tới đây đêm nay với tôi',1,'2026-08-17 03:50:41'),(14,'user_2','Admin Store','tôi sẽ cho bạn đồ free của shop tôi trọn đời',1,'2026-08-17 03:50:59'),(15,'test_session_1787314407263','Khách hàng thử nghiệm','Tôi muốn tư vấn về giày đá bóng sân cỏ nhân tạo size 41.',0,'2026-08-21 12:13:27'),(16,'test_session_1787314407263','Admin Store','Chào bạn, shop hiện có mẫu giày Nike Mercurial và Adidas Predator size 41 phù hợp với sân cỏ nhân tạo nhé!',1,'2026-08-21 12:13:27'),(17,'user_2_1787314836685','Trang Si (Cuộc trò chuyện #2)','chào',0,'2026-08-21 12:20:42'),(18,'user_2_1787314836685','Admin Store','ừm. sao bạn',1,'2026-08-21 12:20:57'),(19,'user_2_1787314836685','Trang Si (Cuộc trò chuyện #2)','? tư vấn sản phẩm bên shop đi',0,'2026-08-21 12:21:16'),(20,'user_2_1787314836685','Admin Store','hay hỏi sản phẩm nào t mới tư vấn đucợ nhé. mày hỏi nkhac như thượng đế ddaaas à. hỏi cho rõ ràng',1,'2026-08-21 12:22:01'),(21,'user_2_1787314836685','Trang Si (Cuộc trò chuyện #2)','!!! ',0,'2026-08-21 12:22:14'),(22,'user_2_1787314940074','Trang Si (Cuộc trò chuyện #3)','Tôi cần tư vấn về sản phẩm: Tất Thể Thao Cổ Cao Nike Everyday (3 Đôi) Update (Mã: #6).',0,'2026-08-21 12:29:05'),(23,'user_2_1787314940074','Trang Si (Cuộc trò chuyện #3)','Tôi cần tư vấn về sản phẩm: Quần Dài Thể Thao Nam Adidas Ultimate365+ Twistweave Grid - Xanh Navy (Mã: #12).',0,'2026-08-21 12:41:25'),(24,'user_2_1787316151273','Trang Si (Cuộc trò chuyện #4)','Tôi cần tư vấn về sản phẩm: Áo Khoác Nam Adidas Kit 3-Stripes Full-Zip - Đen (Mã: #16).',0,'2026-08-21 12:42:33');
 /*!40000 ALTER TABLE `chat_messages` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -176,7 +175,7 @@ CREATE TABLE `contacts` (
   PRIMARY KEY (`id`),
   KEY `fk_contacts_products` (`product_id`),
   CONSTRAINT `fk_contacts_products` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -185,7 +184,7 @@ CREATE TABLE `contacts` (
 
 LOCK TABLES `contacts` WRITE;
 /*!40000 ALTER TABLE `contacts` DISABLE KEYS */;
-INSERT INTO `contacts` VALUES (1,'Nguyễn Văn A','vana@gmail.com','0901234567','Shop ơi tư vấn giúp mình áo thun size L nhé.',0,'2026-07-30 07:36:07',0,NULL),(2,'Trần Thị B','tranb@gmail.com','0987654321','Shop ơi sản phẩm này còn hàng không ạ?',0,'2026-07-30 07:37:29',0,NULL),(3,'trang si','admin@gmail.com','0354717682','trang web quá tuyệt vời',0,'2026-08-02 09:53:26',0,NULL),(4,'Trang Si','admin1@gmail.com','','good',0,'2026-08-02 10:03:27',1,NULL),(5,'Trang Si','admin1@gmail.com','','Tôi muốn nhận tư vấn thêm về sản phẩm: Tất Thể Thao Cổ Cao Nike Everyday (3 Đôi) Update (Mã sản phẩm: #6).',0,'2026-08-17 03:03:45',0,6);
+INSERT INTO `contacts` VALUES (1,'Nguyễn Văn A','vana@gmail.com','0901234567','Shop ơi tư vấn giúp mình áo thun size L nhé.',0,'2026-07-30 07:36:07',0,NULL),(2,'Trần Thị B','tranb@gmail.com','0987654321','Shop ơi sản phẩm này còn hàng không ạ?',0,'2026-07-30 07:37:29',0,NULL),(3,'trang si','admin@gmail.com','0354717682','trang web quá tuyệt vời',0,'2026-08-02 09:53:26',0,NULL),(4,'Trang Si','admin1@gmail.com','','good',0,'2026-08-02 10:03:27',1,NULL),(5,'Trang Si','admin1@gmail.com','','Tôi muốn nhận tư vấn thêm về sản phẩm: Tất Thể Thao Cổ Cao Nike Everyday (3 Đôi) Update (Mã sản phẩm: #6).',0,'2026-08-17 03:03:45',0,6),(6,'Trang Si','admin1@gmail.com','','Tôi muốn nhận tư vấn thêm về sản phẩm: Áo Thun Nữ Nike Sportswear Classic Oversized - Đen (Mã sản phẩm: #31).',0,'2026-08-21 12:22:34',0,31);
 /*!40000 ALTER TABLE `contacts` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -210,7 +209,7 @@ CREATE TABLE `order_details` (
   CONSTRAINT `fk_order_details_variant` FOREIGN KEY (`variant_id`) REFERENCES `product_variants` (`id`) ON DELETE SET NULL,
   CONSTRAINT `order_details_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE,
   CONSTRAINT `order_details_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -219,7 +218,7 @@ CREATE TABLE `order_details` (
 
 LOCK TABLES `order_details` WRITE;
 /*!40000 ALTER TABLE `order_details` DISABLE KEYS */;
-INSERT INTO `order_details` VALUES (1,3,3,112,2,1029000.00),(2,4,3,112,2,1029000.00),(3,5,2,108,2,894000.00),(4,6,7,136,1,2289000.00),(5,6,8,144,1,2289000.00);
+INSERT INTO `order_details` VALUES (1,3,3,112,2,1029000.00),(2,4,3,112,2,1029000.00),(3,5,2,108,2,894000.00),(4,6,7,136,1,2289000.00),(5,6,8,144,1,2289000.00),(6,7,2,109,1,894000.00),(7,8,2,109,1,894000.00);
 /*!40000 ALTER TABLE `order_details` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -240,7 +239,7 @@ CREATE TABLE `orders` (
   `status` varchar(50) DEFAULT 'Pending',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -249,7 +248,7 @@ CREATE TABLE `orders` (
 
 LOCK TABLES `orders` WRITE;
 /*!40000 ALTER TABLE `orders` DISABLE KEYS */;
-INSERT INTO `orders` VALUES (3,1,'Trang Test','0354717682','38 Gò Cát',2058000.00,'Pending','2026-08-17 02:08:08'),(4,1,'Trang Test','0354717682','38 Gò Cát',2058000.00,'Pending','2026-08-17 02:17:03'),(5,1,'Trang Test','0354717682','38 gò cát',1788000.00,'Pending','2026-08-17 02:17:49'),(6,1,'Trang Test','0354717682','38 gò cát',4578000.00,'Đã thanh toán','2026-08-17 02:19:14');
+INSERT INTO `orders` VALUES (3,1,'Trang Test','0354717682','38 Gò Cát',2058000.00,'Đang giao','2026-08-17 02:08:08'),(4,1,'Trang Test','0354717682','38 Gò Cát',2058000.00,'Pending','2026-08-17 02:17:03'),(5,1,'Trang Test','0354717682','38 gò cát',1788000.00,'Pending','2026-08-17 02:17:49'),(6,1,'Trang Test','0354717682','38 gò cát',4578000.00,'Đã thanh toán','2026-08-17 02:19:14'),(7,2,'Trang Si','111','111',894000.00,'Pending','2026-08-21 12:30:12'),(8,2,'Trang Si','111','111',894000.00,'Pending','2026-08-21 12:31:49');
 /*!40000 ALTER TABLE `orders` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -452,4 +451,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-08-17 11:12:48
+-- Dump completed on 2026-08-22 13:14:06

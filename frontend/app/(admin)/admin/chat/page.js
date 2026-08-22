@@ -31,6 +31,40 @@ export default function AdminChatPage() {
         const res = await ChatService.getSessions();
         if (res.success) {
             setSessions(res.data);
+
+            // Tự động chọn cuộc hội thoại nếu có tham số userId trên URL
+            if (typeof window !== 'undefined') {
+                const params = new URLSearchParams(window.location.search);
+                const targetUserId = params.get('userId');
+                const targetUserName = params.get('userName');
+
+                if (targetUserId) {
+                    const userSessionPrefix = `user_${targetUserId}_`;
+                    const existingSession = res.data.find(s => s.session_id.startsWith(userSessionPrefix));
+
+                    if (existingSession) {
+                        setSelectedSessionId(existingSession.session_id);
+                        setSelectedSessionName(existingSession.sender_name);
+                    } else {
+                        // Nếu chưa có phiên chat nào trong database, tạo phiên tạm thời ở client
+                        const tempSessionId = `user_${targetUserId}_${Date.now()}`;
+                        const tempSession = {
+                            session_id: tempSessionId,
+                            sender_name: targetUserName ? decodeURIComponent(targetUserName) : `Thành viên #${targetUserId}`,
+                            message: 'Bắt đầu cuộc trò chuyện trực tuyến...',
+                            is_admin: 0,
+                            created_at: new Date().toISOString()
+                        };
+
+                        setSessions(prev => {
+                            if (prev.some(s => s.session_id.startsWith(userSessionPrefix))) return prev;
+                            return [tempSession, ...prev];
+                        });
+                        setSelectedSessionId(tempSessionId);
+                        setSelectedSessionName(tempSession.sender_name);
+                    }
+                }
+            }
         }
         if (showLoading) setLoadingSessions(false);
     };

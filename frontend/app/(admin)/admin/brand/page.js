@@ -9,6 +9,13 @@ export default function AdminBrandPage() {
     const [activeTab, setActiveTab] = useState('active'); // 'active' hoặc 'trash'
     const [currentPage, setCurrentPage] = useState(1);
 
+    // Phát sự kiện hiển thị Toast
+    const showToast = (message, type = 'success') => {
+        window.dispatchEvent(new CustomEvent('showToast', {
+            detail: { message, type }
+        }));
+    };
+
     // Modal state
     const [showModal, setShowModal] = useState(false);
     const [modalType, setModalType] = useState('add'); // 'add' hoặc 'edit'
@@ -86,7 +93,7 @@ export default function AdminBrandPage() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!formData.name) {
-            alert('Vui lòng điền tên thương hiệu!');
+            showToast('Vui lòng điền tên thương hiệu!', 'warning');
             return;
         }
 
@@ -102,11 +109,11 @@ export default function AdminBrandPage() {
         setSubmitting(false);
 
         if (res.success) {
-            alert(modalType === 'add' ? 'Thêm thương hiệu thành công!' : 'Cập nhật thương hiệu thành công!');
+            showToast(modalType === 'add' ? 'Thêm thương hiệu thành công!' : 'Cập nhật thương hiệu thành công!', 'success');
             setShowModal(false);
             loadBrands();
         } else {
-            alert(res.message || 'Thao tác thất bại!');
+            showToast(res.message || 'Thao tác thất bại!', 'error');
         }
     };
 
@@ -117,10 +124,10 @@ export default function AdminBrandPage() {
         const res = await BrandService.delete(id);
 
         if (res.success) {
-            alert('Đã chuyển thương hiệu vào Thùng rác!');
+            showToast('Đã chuyển thương hiệu vào Thùng rác!', 'success');
             loadBrands();
         } else {
-            alert(res.message || 'Xóa thất bại!');
+            showToast(res.message || 'Xóa thất bại!', 'error');
         }
     };
 
@@ -129,10 +136,10 @@ export default function AdminBrandPage() {
         const res = await BrandService.restore(id);
 
         if (res.success) {
-            alert('Khôi phục thương hiệu thành công!');
+            showToast('Khôi phục thương hiệu thành công!', 'success');
             loadBrands();
         } else {
-            alert(res.message || 'Khôi phục thất bại!');
+            showToast(res.message || 'Khôi phục thất bại!', 'error');
         }
     };
 
@@ -143,10 +150,10 @@ export default function AdminBrandPage() {
         const res = await BrandService.hardDelete(id);
 
         if (res.success) {
-            alert('Đã xóa vĩnh viễn thương hiệu khỏi hệ thống!');
+            showToast('Đã xóa vĩnh viễn thương hiệu khỏi hệ thống!', 'success');
             loadBrands();
         } else {
-            alert(res.message || 'Xóa vĩnh viễn thất bại!');
+            showToast(res.message || 'Xóa vĩnh viễn thất bại!', 'error');
         }
     };
 

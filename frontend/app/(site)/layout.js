@@ -14,6 +14,7 @@ export default function SiteLayout({ children }) {
     const [brands, setBrands] = useState([]);
     const [cartCount, setCartCount] = useState(0);
     const [toast, setToast] = useState({ show: false, message: '' });
+    const [isListening, setIsListening] = useState(false);
 
     useEffect(() => {
         let currentUser = null;
@@ -93,6 +94,51 @@ export default function SiteLayout({ children }) {
         window.location.href = '/';
     };
 
+    const handleVoiceSearch = () => {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            window.dispatchEvent(new CustomEvent('cartToast', { 
+                detail: { message: '❌ Trình duyệt không hỗ trợ Voice Search. Vui lòng dùng Chrome!', type: 'warning' } 
+            }));
+            return;
+        }
+
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'vi-VN';
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        setIsListening(true);
+        window.dispatchEvent(new CustomEvent('cartToast', { 
+            detail: { message: '🎙️ Đang lắng nghe giọng nói của bạn...', type: 'info' } 
+        }));
+
+        recognition.start();
+
+        recognition.onresult = (event) => {
+            const result = event.results[0][0].transcript;
+            setIsListening(false);
+            window.dispatchEvent(new CustomEvent('cartToast', { 
+                detail: { message: `🎙️ Đã nhận diện: "${result}"`, type: 'success' } 
+            }));
+            setTimeout(() => {
+                window.location.href = `/product?q=${encodeURIComponent(result)}`;
+            }, 500);
+        };
+
+        recognition.onerror = (event) => {
+            console.error('Lỗi giọng nói:', event.error);
+            setIsListening(false);
+            window.dispatchEvent(new CustomEvent('cartToast', { 
+                detail: { message: '❌ Không nhận diện được giọng nói hoặc thiếu quyền micro.', type: 'warning' } 
+            }));
+        };
+
+        recognition.onend = () => {
+            setIsListening(false);
+        };
+    };
+
     return (
         <div className="min-h-screen flex flex-col bg-slate-50 text-slate-800 font-sans">
             {/* Header / Navbar */}
@@ -107,13 +153,43 @@ export default function SiteLayout({ children }) {
                             </Link>
                         </div>
 
+                        {/* Desktop Search Input */}
+                        <form
+                            onSubmit={(e) => {
+                                e.preventDefault();
+                                const val = e.target.search.value.trim();
+                                if (val) window.location.href = `/product?q=${encodeURIComponent(val)}`;
+                            }}
+                            className="hidden lg:flex items-center relative lg:max-w-[140px] xl:max-w-[240px] w-full mx-2 xl:mx-4"
+                        >
+                            <input
+                                type="text"
+                                name="search"
+                                placeholder="Tìm sản phẩm..."
+                                className="w-full bg-slate-100 hover:bg-slate-150 focus:bg-white text-xs font-semibold px-4 py-2 pl-9 pr-8 rounded-xl border border-transparent focus:border-indigo-500 focus:outline-none transition-all"
+                            />
+                            <span className="absolute left-3 text-slate-400 text-xs">🔍</span>
+                            <button
+                                type="button"
+                                onClick={handleVoiceSearch}
+                                className={`absolute right-2.5 p-1 rounded-lg text-xs transition-all ${
+                                    isListening 
+                                        ? 'text-rose-600 bg-rose-50 animate-pulse font-black' 
+                                        : 'text-slate-400 hover:text-indigo-650 hover:bg-slate-200/50'
+                                }`}
+                                title="Tìm kiếm bằng giọng nói"
+                            >
+                                🎙️
+                            </button>
+                        </form>
+
                         {/* Desktop Navigation Links */}
-                        <nav className="hidden md:flex space-x-8 text-sm font-semibold h-full items-center">
-                            <Link href="/" className="text-slate-600 hover:text-indigo-600 transition-colors py-4">Trang Chủ</Link>
+                        <nav className="hidden md:flex space-x-6 lg:space-x-8 text-sm font-semibold h-full items-center">
+                            <Link href="/" className="text-slate-600 hover:text-indigo-600 transition-colors py-4 whitespace-nowrap">Trang Chủ</Link>
                             
                             {/* Mega Menu Dropdown */}
                             <div className="relative group h-full flex items-center py-4">
-                                <Link href="/product" className="text-slate-600 hover:text-indigo-600 transition-colors flex items-center gap-0.5">
+                                <Link href="/product" className="text-slate-600 hover:text-indigo-600 transition-colors flex items-center gap-0.5 whitespace-nowrap">
                                     Sản Phẩm <span className="text-[10px] group-hover:rotate-180 transition-transform duration-200">▼</span>
                                 </Link>
                                 
@@ -197,8 +273,8 @@ export default function SiteLayout({ children }) {
                                 </div>
                             </div>
 
-                            <Link href="/post" className="text-slate-600 hover:text-indigo-600 transition-colors py-4">Tin Tức</Link>
-                            <Link href="/contact" className="text-slate-600 hover:text-indigo-600 transition-colors py-4">Liên Hệ</Link>
+                            <Link href="/post" className="text-slate-600 hover:text-indigo-600 transition-colors py-4 whitespace-nowrap">Tin Tức</Link>
+                            <Link href="/contact" className="text-slate-600 hover:text-indigo-600 transition-colors py-4 whitespace-nowrap">Liên Hệ</Link>
                         </nav>
 
                         {/* Right Actions */}
@@ -218,7 +294,7 @@ export default function SiteLayout({ children }) {
 
                             {/* Admin Shortcut link (Chỉ hiển thị cho admin) */}
                             {user && (user.role === 'admin' || user.email?.includes('admin')) && (
-                                <Link href="/admin" className="hidden sm:inline-flex items-center text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-2 rounded-xl transition-all cursor-pointer">
+                                <Link href="/admin" className="hidden sm:inline-flex items-center text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-2 rounded-xl transition-all cursor-pointer whitespace-nowrap">
                                     ⚙️ Admin Panel
                                 </Link>
                             )}
@@ -226,16 +302,16 @@ export default function SiteLayout({ children }) {
                             {/* Login / Logout Button */}
                             {user ? (
                                 <div className="flex items-center gap-3">
-                                    <span className="hidden lg:inline text-xs font-bold text-slate-500">Xin chào, <span className="text-indigo-600">{user.name}</span></span>
+                                    <span className="hidden lg:inline text-xs font-bold text-slate-500 whitespace-nowrap">Xin chào, <span className="text-indigo-600">{user.name}</span></span>
                                     <button
                                         onClick={handleLogout}
-                                        className="bg-slate-100 hover:bg-rose-50 text-slate-700 hover:text-rose-600 px-4 py-2 rounded-xl text-sm font-bold transition-all cursor-pointer border border-slate-200/50"
+                                        className="bg-slate-100 hover:bg-rose-50 text-slate-700 hover:text-rose-600 px-4 py-2 rounded-xl text-sm font-bold transition-all cursor-pointer border border-slate-200/50 whitespace-nowrap"
                                     >
                                         Đăng Xuất
                                     </button>
                                 </div>
                             ) : (
-                                <Link href="/login" className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-md shadow-indigo-200 hover:shadow-indigo-300 transition-all cursor-pointer">
+                                <Link href="/login" className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-md shadow-indigo-200 hover:shadow-indigo-300 transition-all cursor-pointer whitespace-nowrap">
                                     Đăng Nhập
                                 </Link>
                             )}
@@ -328,17 +404,35 @@ export default function SiteLayout({ children }) {
                                 TRANG STORE
                             </span>
                             <p className="text-sm leading-relaxed text-slate-400">
-                                Cửa hàng thời trang chính hãng, xu hướng thời trang Nike, Adidas chính hãng chất lượng cao tại Việt Nam.
+                                Cửa hàng thời trang chính hãng, xu hướng thời trang Nike, Adidas chất lượng cao tại Việt Nam.
                             </p>
                         </div>
 
                         {/* Quick links */}
                         <div>
-                            <h4 className="text-sm font-bold text-white uppercase tracking-wider mb-4">Danh mục chính</h4>
-                            <ul className="space-y-2 text-sm">
-                                <li><Link href="/product" className="hover:text-indigo-400 transition-colors">Thời Trang Thể Thao</Link></li>
-                                <li><Link href="/product" className="hover:text-indigo-400 transition-colors">Giày Dép Nike</Link></li>
-                                <li><Link href="/product" className="hover:text-indigo-400 transition-colors">Mũ Nón Phụ Kiện</Link></li>
+                            <h4 className="text-sm font-bold text-white uppercase tracking-wider mb-4">Danh mục</h4>
+                            <ul className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                                {categories.length === 0 ? (
+                                    <>
+                                        <li><Link href="/product?category=1" className="text-slate-400 hover:text-indigo-400 transition-colors">Áo Nam</Link></li>
+                                        <li><Link href="/product?category=2" className="text-slate-400 hover:text-indigo-400 transition-colors">Quần Nam</Link></li>
+                                        <li><Link href="/product?category=4" className="text-slate-400 hover:text-indigo-400 transition-colors">Áo Khoác Nam</Link></li>
+                                        <li><Link href="/product?category=5" className="text-slate-400 hover:text-indigo-400 transition-colors">Giày Thể Thao</Link></li>
+                                        <li><Link href="/product?category=7" className="text-slate-400 hover:text-indigo-400 transition-colors">Áo Nữ</Link></li>
+                                        <li><Link href="/product?category=8" className="text-slate-400 hover:text-indigo-400 transition-colors">Quần Nữ</Link></li>
+                                    </>
+                                ) : (
+                                    categories.map((cat) => (
+                                        <li key={cat.id}>
+                                            <Link 
+                                                href={`/product?category=${cat.id}`} 
+                                                className="text-slate-400 hover:text-indigo-400 transition-colors"
+                                            >
+                                                {cat.name}
+                                            </Link>
+                                        </li>
+                                    ))
+                                )}
                             </ul>
                         </div>
 
@@ -346,9 +440,9 @@ export default function SiteLayout({ children }) {
                         <div>
                             <h4 className="text-sm font-bold text-white uppercase tracking-wider mb-4">Hỗ trợ khách hàng</h4>
                             <ul className="space-y-2 text-sm">
-                                <li><Link href="/contact" className="hover:text-indigo-400 transition-colors">Liên hệ góp ý</Link></li>
-                                <li><Link href="/warranty" className="hover:text-indigo-400 transition-colors">Chính sách bảo hành</Link></li>
-                                <li><Link href="/terms" className="hover:text-indigo-400 transition-colors">Điều khoản dịch vụ</Link></li>
+                                <li><Link href="/contact" className="text-slate-400 hover:text-indigo-400 transition-colors">Liên hệ góp ý</Link></li>
+                                <li><Link href="/warranty" className="text-slate-400 hover:text-indigo-400 transition-colors">Chính sách bảo hành</Link></li>
+                                <li><Link href="/terms" className="text-slate-400 hover:text-indigo-400 transition-colors">Điều khoản dịch vụ</Link></li>
                             </ul>
                         </div>
 

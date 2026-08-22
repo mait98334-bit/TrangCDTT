@@ -256,12 +256,29 @@ export default function ProductDetailPage({ params }) {
         <div className="min-h-screen bg-gray-50/50 py-10 px-4 sm:px-6 lg:px-8">
             <div className="max-w-7xl mx-auto">
                 {/* Breadcrumbs */}
-                <nav className="flex items-center gap-2 text-xs sm:text-sm text-gray-500 mb-8 font-medium">
+                <nav className="flex items-center gap-1.5 text-xs sm:text-sm text-gray-500 mb-8 font-medium">
                     <Link href="/" className="hover:text-indigo-600 transition-colors">Trang chủ</Link>
-                    <span>/</span>
-                    <span className="text-gray-700">{product.category_name || 'Thời trang'}</span>
-                    <span>/</span>
-                    <span className="text-gray-800 font-semibold truncate max-w-xs">{product.name}</span>
+                    <span className="text-gray-400">›</span>
+                    
+                    {product.category_id && (
+                        <>
+                            <Link href={`/product?category=${product.category_id}`} className="hover:text-indigo-600 transition-colors">
+                                {product.category_name}
+                            </Link>
+                            <span className="text-gray-400">›</span>
+                        </>
+                    )}
+
+                    {product.brand_id && (
+                        <>
+                            <Link href={`/product?brand=${product.brand_id}`} className="hover:text-indigo-600 transition-colors">
+                                {product.brand_name}
+                            </Link>
+                            <span className="text-gray-400">›</span>
+                        </>
+                    )}
+                    
+                    <span className="text-gray-800 font-semibold truncate max-w-[200px] sm:max-w-xs">{product.name}</span>
                 </nav>
 
                 {/* Main Product Layout */}

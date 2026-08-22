@@ -8,6 +8,13 @@ export default function AdminCartPage() {
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
 
+    // Phát sự kiện hiển thị Toast
+    const showToast = (message, type = 'success') => {
+        window.dispatchEvent(new CustomEvent('showToast', {
+            detail: { message, type }
+        }));
+    };
+
     // Modal state
     const [showModal, setShowModal] = useState(false);
     const [selectedCartDetails, setSelectedCartDetails] = useState({
@@ -49,7 +56,7 @@ export default function AdminCartPage() {
                 items: res.data
             }));
         } else {
-            alert(res.message || 'Không thể lấy chi tiết giỏ hàng!');
+            showToast(res.message || 'Không thể lấy chi tiết giỏ hàng!', 'error');
             setShowModal(false);
         }
     };
@@ -61,10 +68,10 @@ export default function AdminCartPage() {
         const res = await CartService.clearAdmin(cartId);
 
         if (res.success) {
-            alert('Dọn sạch giỏ hàng thành công!');
+            showToast('Dọn sạch giỏ hàng thành công!', 'success');
             loadCarts();
         } else {
-            alert(res.message || 'Dọn sạch giỏ hàng thất bại!');
+            showToast(res.message || 'Dọn sạch giỏ hàng thất bại!', 'error');
         }
     };
 
